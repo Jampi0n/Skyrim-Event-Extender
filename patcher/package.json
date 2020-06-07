@@ -1,0 +1,22 @@
+{
+  "name": "skyrim-event-extender",
+  "productName": "Skyrim Event Extender",
+  "description": "A mod for Skyrim with the intention to add additional events, keywords and other useful features for mod creation.",
+  "version": "1.0.0",
+  "author": "Jampion",
+  "repository": "https://github.com/Jampi0n/Skyrim-Event-Extender",
+  "scripts": {
+    "build": "gulp build",
+    "release": "gulp release"
+  },
+  "dependencies": {
+    "del": "^5.1.0"
+  },
+  "devDependencies": {
+    "gulp": "^4.0.0",
+    "gulp-clean": "^0.4.0",
+    "gulp-include": "^2.4.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-zip": "^4.0.0"
+  }
+}
