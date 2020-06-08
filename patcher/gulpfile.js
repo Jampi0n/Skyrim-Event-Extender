@@ -1,13 +1,12 @@
 const fs = require('fs'),
     gulp = require('gulp'),
-    clean = require('gulp-clean'),
     include = require('gulp-include'),
     rename = require('gulp-rename'),
-    zip = require('gulp-zip');
+    zip = require('gulp-zip'),
     del = require('del');
 
 gulp.task('clean', async function() {
-    let moduleInfo = JSON.parse(fs.readFileSync('module.json')),
+    let moduleInfo = JSON.parse(fs.readFileSync('module.json').toString()),
         moduleId = moduleInfo.id;
     let modulePath = process.env.ZEDIT_PATH + 'modules\\' + moduleId;
     del.sync(['dist/*']);
@@ -16,7 +15,7 @@ gulp.task('clean', async function() {
 
 
 gulp.task('build', gulp.series('clean', function() {
-    let moduleInfo = JSON.parse(fs.readFileSync('module.json')),
+    let moduleInfo = JSON.parse(fs.readFileSync('module.json').toString()),
         moduleId = moduleInfo.id;
     let modulePath = process.env.ZEDIT_PATH + 'modules\\' + moduleId;
 
@@ -43,7 +42,7 @@ gulp.task('build', gulp.series('clean', function() {
 }));
 
 gulp.task('release', function() {
-    let moduleInfo = JSON.parse(fs.readFileSync('module.json')),
+    let moduleInfo = JSON.parse(fs.readFileSync('module.json').toString()),
         moduleId = moduleInfo.id,
         moduleVersion = moduleInfo.version,
         zipFileName = `${moduleId}-v${moduleVersion}.zip`;

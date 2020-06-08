@@ -10,13 +10,14 @@
     "release": "gulp release"
   },
   "dependencies": {
-    "del": "^5.1.0"
+    "del": "^5.1.0",
+    "eslint": "^7.2.0"
   },
   "devDependencies": {
     "gulp": "^4.0.0",
     "gulp-clean": "^0.4.0",
     "gulp-include": "^2.4.1",
     "gulp-rename": "^1.2.2",
-    "gulp-zip": "^4.0.0"
+    "gulp-zip": "^5.0.1"
   }
 }
