@@ -1,70 +1,36 @@
 /* global xelib */
 
-/**
- * Adds keywords to all base enchantments that can be available to the player.
- * Apparel and weapons get different keywords.
- * Can be used to increase number of charges of weapon enchantments by reducing magicka cost with a perk.
- */
-
-let enchantmentKeywords = {
-  patch: function (record, object) {
-    let ench = xelib.GetWinningOverride(
-      xelib.GetLinksTo(record, 'EITM - Object Effect'))
-    let baseEnch = xelib.GetLinksTo(ench,
-      'ENIT - Effect Data\\Base Enchantment')
-    if (baseEnch !== 0) {
-      baseEnch = xelib.GetWinningOverride(baseEnch)
-      let mEffect = xelib.GetLinksTo(baseEnch,
-        'Effects\\[' + 0 + ']\\EFID - Base Effect')
-      if (mEffect !== 0) {
-        mEffect = xelib.GetWinningOverride(mEffect)
-        let copy = globals.helpers.copyToPatch(mEffect)
-        if (!xelib.HasKeyword(copy, object.keyword)) {
-          xelib.AddKeyword(copy, object.keyword)
+let makeEnchantmentPatcher = function (signature, editorID) {
+  return {
+    load: {
+      signature: signature, filter: function (record, _name) {
+        return xelib.GetLinksTo(record, 'EITM - Object Effect') !== 0 &&
+          !xelib.HasKeyword(record, xelib.Hex(0x000C27BD))
+      },
+    }, patch: function (record, name) {
+      const enchantment = utils.winningOverride(
+        xelib.GetLinksTo(record, 'EITM - Object Effect'))
+      const baseEnchantment = utils.winningOverride(
+        xelib.GetLinksTo(enchantment, 'ENIT - Effect Data\\Base Enchantment'))
+      if (baseEnchantment !== 0) {
+        const magicEffect = utils.winningOverride(
+          xelib.GetLinksTo(baseEnchantment,
+            'Effects\\[' + 0 + ']\\EFID - Base Effect'))
+        if (magicEffect !== 0) {
+          utils.addKeyword(globals.helpers.copyToPatch(magicEffect),
+            fromEditorID(editorID))
         }
       }
-    }
-  },
-}
-
-let armorEnchantments = {
-  name: 'Armor Enchantments',
-
-  initialize: function () {
-    armorEnchantments.keyword = xelib.Hex(0x80A + globals.loadOrderOffset)
-    armorEnchantments.noDisenchant = xelib.Hex(0x000C27BD)
-  },
-
-  load: {
-    signature: 'ARMO',
-    filter: function (record) {
-      return xelib.GetLinksTo(record, 'EITM - Object Effect') !== 0 &&
-        !xelib.HasKeyword(record, armorEnchantments.noDisenchant)
     },
-  },
-
-  patch: function (record) {
-    enchantmentKeywords.patch(record, armorEnchantments)
-  },
+  }
 }
 
-let weaponEnchantments = {
-  name: 'Weapon Enchantments',
-
-  initialize: function () {
-    weaponEnchantments.keyword = xelib.Hex(0x80B + globals.loadOrderOffset)
-    weaponEnchantments.noDisenchant = xelib.Hex(0x000C27BD)
-  },
-
-  load: {
-    signature: 'WEAP',
-    filter: function (record) {
-      return xelib.GetLinksTo(record, 'EITM - Object Effect') !== 0 &&
-        !xelib.HasKeyword(record, weaponEnchantments.noDisenchant)
-    },
-  },
-
-  patch: function (record) {
-    enchantmentKeywords.patch(record, weaponEnchantments)
-  },
-}
+new Patcher({
+  name: 'enchantment-keywords', createMaster: function (masterFile) {
+    addRecord(masterFile, 'KYWD', 'EnchantmentApparel',
+      getFormIDs(this.name, 0))
+    addRecord(masterFile, 'KYWD', 'EnchantmentWeapon', getFormIDs(this.name, 0))
+  }, process: [
+    makeEnchantmentPatcher('ARMO', 'EnchantmentApparel'),
+    makeEnchantmentPatcher('WEAP', 'EnchantmentWeapon')],
+})

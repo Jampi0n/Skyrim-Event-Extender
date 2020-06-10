@@ -1,20 +1,17 @@
 /* global xelib */
+'use strict'
 /**
- * Adds a script to all summoning magic effects to track the number and power of summons the player has.
- * The power of summon creature effects depends on the creature level.
- * The power of reanimation effects depends on the maximum level the spell can target.
+ * Adds a script to all summoning magic effects to track the number and power
+ * of summons the player has. The power of summon creature effects depends on
+ * the creature level. The power of reanimation effects depends on the maximum
+ * level the spell can target.
  */
 
 let summonDetection = {
   name: 'Summon Detection',
 
-  initialize: function () {
-
-  },
-
   load: {
-    signature: 'MGEF',
-    filter: function (record) {
+    signature: 'MGEF', filter: function (record) {
       let archtype = xelib.GetValue(record,
         'Magic Effect Data\\DATA - Data\\Archtype')
       return archtype === 'Summon Creature' || archtype === 'Reanimate'
@@ -24,8 +21,7 @@ let summonDetection = {
   patch: function (record) {
     xelib.AddElement(record, 'VMAD - Virtual Machine Adapter')
     xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Version', '5')
-    xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Object Format',
-      '2')
+    xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Object Format', '2')
 
     let archType = xelib.GetValue(record,
       'Magic Effect Data\\DATA - Data\\Archtype')
@@ -56,3 +52,17 @@ let summonDetection = {
     }
   },
 }
+
+new Patcher({
+  name: 'summon-detection', after: ['spell-damage-detection'], process: [
+    {
+      load: {
+        signature: summonDetection.load.signature,
+        filter: function (record, _name) {
+          return summonDetection.load.filter(record)
+        },
+      }, patch: function (record, _name) {
+        summonDetection.patch(record)
+      },
+    }],
+})

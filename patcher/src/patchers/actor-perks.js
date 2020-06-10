@@ -1,45 +1,32 @@
 /* global xelib */
 
-/**
- * Adds a perk to all actors.
- */
-let actorPerk1 = {
-  name: 'Actor Perk 1',
-
+const actorPerk = {
   perkList: [],
-
-  initialize: function () {
-    actorPerk1.perkList = []
-  },
-
-  load: {
-    signature: 'PERK',
-    filter: function (record) {
-      return xelib.EditorID(record).startsWith(globals.prefix + '_AP_')
-    },
-  },
-
-  patch: function (record) {
-    actorPerk1.perkList.push(xelib.GetHexFormID(record))
-  },
 }
 
-let actorPerk2 = {
-  name: 'Actor Perk 2',
+new Patcher({
+  name: 'actor-perks', after: ['enchantment-keywords'], process: [
+    {
+      load: {
+        signature: 'PERK', filter: function (record, _name) {
+          return xelib.EditorID(record).startsWith(globals.prefix + '_AP_')
+        },
+      },
 
-  initialize: function () {
-  },
+      patch: function (record, _name) {
+        actorPerk.perkList.push(xelib.GetHexFormID(record))
+      },
+    }, {
+      load: {
+        signature: 'NPC_', filter: function (_record) {
+          return actorPerk.perkList.length > 0
+        },
+      },
 
-  load: {
-    signature: 'NPC_',
-    filter: function (_record) {
-      return actorPerk1.perkList.length > 0
-    },
-  },
-
-  patch: function (record) {
-    for (let i = 0; i < actorPerk1.perkList.length; i++) {
-      xelib.AddPerk(record, actorPerk1.perkList[i], '1')
-    }
-  },
-}
+      patch: function (record) {
+        for (const perk of actorPerk.perkList) {
+          xelib.AddPerk(record, perk, '1')
+        }
+      },
+    }],
+})

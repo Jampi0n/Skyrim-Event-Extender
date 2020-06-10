@@ -1,71 +1,47 @@
-/* global ngapp, xelib, registerPatcher, patcherUrl */
-//= require ./src/patchers/*
+/* global xelib, registerPatcher */
+//= require ./src/include.js
 
-let masterName = "SkyrimEventExtender.esm"
+globals.patcherMode = patcherModes.ptRunPatcher
 
-let globals = {
-	patchFile: 0,
-	helpers: 0,
-	settings: 0,
-	locals: 0,
-	initFunctions: [],
-	patchers: [],
-	loadOrderOffset: 0,
-	prefix: "JEE",
-	prefix_: 'JEE_'
-};
-
-globals.patchers = [armorEnchantments, weaponEnchantments, actorPerk1, actorPerk2, shoutPerk, spellDamageDetection1, spellDamageDetection2, summonDetection, effectKeywords];
-
-let GetRecord = function (formID) {
-	return xelib.GetRecord(globals.masterFile, xelib.GetFileLoadOrder(globals.masterFile) * 0x01000000 + formID);
-}
-
-let createFile = function(fileName) {
-	let file = xelib.FileByName(fileName);
-	if(file === 0) {
-		file = xelib.AddFile(fileName);
-	} else {
-		xelib.NukeFile(file);
-		xelib.CleanMasters(file);
-	}
-	return file;
-}
+const missingPatchers = globals.patcherManager.sort()
 
 registerPatcher({
-	info: info,
-	gameModes: [xelib.gmSSE, xelib.gmTES5],
-	settings: {
-		label: 'Skyrim Event Extender',
-		hide: true,
-		defaultSettings: {
-			patchFileName: 'SkyrimEventExtender_Patch.esp'
-		}
-	},
-	//requiredFiles: [masterName],
-	execute(patchFile, helpers, settings, locals) {
+  info: info,
+  gameModes: [xelib.gmSSE, xelib.gmTES5],
+  settings: {
+    label: modName, hide: true, defaultSettings: {
+      patchFileName: globals.patchName,
+    },
+  },
+  requiredFiles: [globals.masterName],
+  execute (patchFile, helpers, settings, locals) {
+    return {
+      initialize: function () {
+        globals.patchFile = patchFile
+        globals.helpers = helpers
+        globals.settings = settings
+        globals.locals = locals
 
-		return {
-			initialize: function () {
-				globals.patchFile = patchFile;
-				globals.helpers = helpers;
-				globals.settings = settings;
-				globals.locals = locals;
+        for (const patcher of missingPatchers) {
+          utils.log(
+            'Warning: Patcher ' + patcher[0] + ' must run after patcher ' +
+            patcher[1] + ', which was not found.')
+        }
 
-				globals.masterFile = xelib.FileByName(masterName);
-				globals.loadOrderOffset = xelib.GetFileLoadOrder(globals.masterFile) * 0x01000000;
+        for (const patcher of globals.patcherManager.patcherOrder) {
+          utils.log(patcher.name)
+        }
 
-				for (let i = 0; i < globals.patchers.length; ++i) {
-					globals.helpers.logMessage("Initializing: " + globals.patchers[i].name);
-					globals.patchers[i].initialize();
-				}
-			},
-
-			process: globals.patchers,
-
-			finalize: function () { }
-
-		};
-
-	}
+        utils.log('Initializing...')
+        globals.masterFile = xelib.FileByName(globals.masterName)
+        globals.loadOrderOffset = utils.getLoadOrderOffset(globals.masterFile)
+        globals.patcherManager.create_master('')
+        globals.patcherManager.initialize()
+        utils.log('Initialization completed.')
+      }, process: globals.patcherManager.process, finalize: function () {
+        globals.patcherManager.finalize()
+      },
+    }
+  },
 })
+
