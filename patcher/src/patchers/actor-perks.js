@@ -1,32 +1,17 @@
 /* global xelib */
 
-const actorPerk = {
-  perkList: [],
+{
+  let perkList = []
+  PatcherManager.add('actor-perks', 'Actor Perk Distributor').
+    begin(() => {perkList = []}).
+    process(record => {perkList.push(xelib.GetHexFormID(record))}, 'PERK',
+      (record) => {
+        return xelib.EditorID(record).
+          startsWith(PREFIX + '_AP_')
+      }).
+    process(record => {
+      for (const perk of perkList) {
+        xelib.AddPerk(record, perk, '1')
+      }
+    }, 'NPC_')
 }
-
-new Patcher({
-  name: 'actor-perks', after: ['enchantment-keywords'], process: [
-    {
-      load: {
-        signature: 'PERK', filter: function (record, _name) {
-          return xelib.EditorID(record).startsWith(globals.prefix + '_AP_')
-        },
-      },
-
-      patch: function (record, _name) {
-        actorPerk.perkList.push(xelib.GetHexFormID(record))
-      },
-    }, {
-      load: {
-        signature: 'NPC_', filter: function (_record) {
-          return actorPerk.perkList.length > 0
-        },
-      },
-
-      patch: function (record) {
-        for (const perk of actorPerk.perkList) {
-          xelib.AddPerk(record, perk, '1')
-        }
-      },
-    }],
-})

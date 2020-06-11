@@ -1,15 +1,28 @@
 /* global xelib */
 
-const shoutPerk = {
-  wordPath: function (index) {return 'Words of Power\\[' + index + ']\\'},
-  isShout: function (record) {
+{
+  /**
+   *
+   * @param {number} index
+   * @return {string}
+   */
+  function getWordPath (index) {
+    return 'Words of Power\\[' + index + ']\\'
+  }
+
+  /**
+   *
+   * @param {number} record
+   * @return {boolean}
+   */
+  function isShout (record) {
     const words = []
     const spells = []
     const spellLinks = []
     const cooldowns = []
 
     for (let i = 0; i < 3; ++i) {
-      const path = this.wordPath(i)
+      const path = getWordPath(i)
       words.push(xelib.GetValue(record, path + 'Word'))
       spells.push(xelib.GetValue(record, path + 'Spell'))
       spellLinks.push(xelib.GetLinksTo(record, path + 'Spell'))
@@ -38,42 +51,36 @@ const shoutPerk = {
     }
     // Otherwise, the shout record is considered to be a real shout.
     return true
-  },
-  patchShout: function (record) {
+  }
+
+  /**
+   *
+   * @param {number} record
+   */
+  function patchShout (record) {
     for (let i = 0; i < 3; ++i) {
-      let spell = xelib.GetLinksTo(record, this.wordPath(i) + 'Spell')
+      let spell = xelib.GetLinksTo(record, getWordPath(i) + 'Spell')
       spell = xelib.GetWinningOverride(spell)
       let currentPerk = xelib.GetLinksTo(spell, 'SPIT - Data\\Half-cost Perk')
       if (currentPerk !== 0) {
         let currentPerkFormID = xelib.GetFormID(currentPerk)
-        if (currentPerkFormID !== fromEditorID('SpellIsShout')) {
-          utils.log(`Shout spell ${xelib.GetHexFormID(
+        if (currentPerkFormID !== Master.fromEditorID('SpellIsShout')) {
+          Utils.log(`Shout spell ${xelib.GetHexFormID(
             spell)} already has a perk: ${xelib.Hex(currentPerkFormID)}`)
         }
         return
       }
       let copy = globals.helpers.copyToPatch(spell, false)
       xelib.SetUIntValue(copy, 'SPIT - Data\\Half-cost Perk',
-        fromEditorID('SpellIsShout'))
+        Master.fromEditorID('SpellIsShout'))
     }
-  },
-}
+  }
 
-new Patcher({
-  name: 'shout-perk', createMaster: function (masterFile) {
-    addRecord(masterFile, 'PERK', 'SpellIsShout', getFormIDs(this.name, 0)).
+  PatcherManager.add('shout-perk', 'Shout Spell Detection').master(() => {
+    Master.addRecord('PERK', 'SpellIsShout', PatcherManager.getFormIDs(0)).
       init(function (record) {
         xelib.AddElement(record, 'FULL - Name')
         xelib.SetValue(record, 'FULL - Name', 'Spell Is Shout')
       })
-  }, process: [
-    {
-      load: {
-        signature: 'SHOU', filter: function (record, _name) {
-          return shoutPerk.isShout(record)
-        },
-      }, patch: function (record, _name) {
-        shoutPerk.patchShout(record)
-      },
-    }],
-})
+  }).process(patchShout, 'SHOU', isShout)
+}

@@ -1,24 +1,45 @@
-let currentFormID = 0x800
-let formIDMap = {}
+class Allocator {
+  static nextID_ = 0x800
+  static formIDMap_ = {}
 
-let allocateFormIDs = function (patcher, count) {
-  if (!formIDMap.hasOwnProperty(patcher)) {
-    formIDMap[patcher] = []
+  /**
+   *
+   * @param {string} patcherIdentifier
+   * @param {number} count
+   */
+  static alloc (patcherIdentifier, count) {
+    if (!this.formIDMap_.hasOwnProperty(patcherIdentifier)) {
+      this.formIDMap_[patcherIdentifier] = []
+    }
+    const patcherFormIDs = this.formIDMap_[patcherIdentifier]
+    patcherFormIDs.push([this.nextID_, this.nextID_ + count, this.nextID_])
+    this.nextID_ += count
+    this.formIDMap_[patcherIdentifier] = patcherFormIDs
   }
-  let patcherFormIDs = formIDMap[patcher]
-  patcherFormIDs.push([currentFormID, currentFormID + count, currentFormID])
-  currentFormID += count
-  formIDMap[patcher] = patcherFormIDs
+
+  /**
+   *
+   * @param {string} patcherIdentifier
+   * @param {number} group
+   * @return {number[]}
+   */
+  static getFormIDs (patcherIdentifier, group) {
+    const formIDs = this.formIDMap_[patcherIdentifier][group].slice()
+    for (let i = 0; i < formIDs.length; ++i) {
+      formIDs[i] += Master.loadOrderOffset
+    }
+    return [formIDs[0], formIDs[1], formIDs[2]]
+  }
+
+  /**
+   *
+   * @param {string} patcherIdentifier
+   * @param {number} group
+   * @param {number} index
+   * @return {number}
+   */
+  static getFormID (patcherIdentifier, group, index) {
+    return index + this.getFormIDs(patcherIdentifier, group)[0]
+  }
 }
 
-let getFormIDs = function (patcher, group) {
-  return formIDMap[patcher][group].slice()
-}
-
-let getFormID = function (patcher, group, index) {
-  return index + getFormIDs(patcher, group)[0]
-}
-
-let getMasterFormID = function (patcher, group, index) {
-  return convertToMasterFormID(getFormID(patcher, group, index))
-}

@@ -1,7 +1,7 @@
 /* global xelib */
 
-const effectKeywords = {
-  resistNames: [
+{
+  const resistNames = [
     'Any',
     'None',
     'Fire',
@@ -12,7 +12,8 @@ const effectKeywords = {
     'MagicOrElemental',
     'Poison',
     'Disease',
-    'Damage'], resistRules: {
+    'Damage']
+  const resistRules = {
     'None': ['Any', 'None'],
     'Resist Fire': ['Any', 'Fire', 'Elemental', 'MagicOrElemental'],
     'Resist Frost': ['Any', 'Frost', 'Elemental', 'MagicOrElemental'],
@@ -21,71 +22,32 @@ const effectKeywords = {
     'Poison Resist': ['Any', 'Poison'],
     'Disease Resist': ['Any', 'Disease'],
     'Damage Resist': ['Any', 'Damage'],
-  }, keywordRules: [], addKeywordRule: function (keywordRule) {
-    effectKeywords.keywordRules.push(keywordRule)
-  },
-}
+  }
 
-function isDamagingEffect (magicEffect) {
-  // [X] Detrimental
-  // [ ] Recover
-  // Value Modifier
-  //  - Actor Value == Health
-  // Peak Value Modifier
-  // - Actor Value == Health
-  // Dual Value Modifier
-  // - Actor Value == Health || Second Actor Value == Health
-  if (!utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
-    return false
-  }
-  if (utils.magicEffectHasFlag(magicEffect, 'Recover')) {
-    return false
-  }
-  let archType = xelib.GetValue(magicEffect,
-    'Magic Effect Data\\DATA - Data\\Archtype')
-  let av1 = xelib.GetValue(magicEffect,
-    'Magic Effect Data\\DATA - Data\\Actor Value')
-  let av2 = xelib.GetValue(magicEffect,
-    'Magic Effect Data\\DATA - Data\\Second Actor Value')
-  if (archType === 'Absorb') {
-    return av1 === 'Health'
-  }
-  if (archType === 'Value Modifier') {
-    return av1 === 'Health'
-  }
-  if (archType === 'Peak Value Modifier') {
-    return av1 === 'Health'
-  }
-  if (archType === 'Dual Value Modifier') {
-    return av1 === 'Health' || av2 === 'Health'
-  }
-  return false
-}
+  /** @type { (function(number):number[])[] } */
+  const keywordRules = []
 
-effectKeywords.addKeywordRule({
-  initialize: function () { }, filter: function (magicEffect, name) {
-    const ret = []
-    if (isDamagingEffect(magicEffect)) {
-      let resist = xelib.GetValue(magicEffect,
-        'Magic Effect Data\\DATA - Data\\Resist Value')
-      for (const effectName of effectKeywords.resistRules[resist]) {
-        ret.push(getMasterFormID(name, 0,
-          4 + effectKeywords.resistNames.indexOf(effectName)))
-      }
+  /**
+   * @param {function(number):number[]} keywordRule
+   */
+  function addKeywordRule (keywordRule) {
+    keywordRules.push(keywordRule)
+  }
+
+  function isDamagingEffect (magicEffect) {
+    // [X] Detrimental
+    // [ ] Recover
+    // Value Modifier
+    //  - Actor Value == Health
+    // Peak Value Modifier
+    // - Actor Value == Health
+    // Dual Value Modifier
+    // - Actor Value == Health || Second Actor Value == Health
+    if (!Utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
+      return false
     }
-    return ret
-  },
-})
-
-effectKeywords.addKeywordRule({
-  initialize: function () { }, filter: function (magicEffect, name) {
-    let ret = [effectKeywords.restoreAttribute]
-    let restore = false
-    if (utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
-      return []
-    }
-    if (utils.magicEffectHasFlag(magicEffect, 'Recover')) {
-      return []
+    if (Utils.magicEffectHasFlag(magicEffect, 'Recover')) {
+      return false
     }
     let archType = xelib.GetValue(magicEffect,
       'Magic Effect Data\\DATA - Data\\Archtype')
@@ -93,75 +55,97 @@ effectKeywords.addKeywordRule({
       'Magic Effect Data\\DATA - Data\\Actor Value')
     let av2 = xelib.GetValue(magicEffect,
       'Magic Effect Data\\DATA - Data\\Second Actor Value')
+    if (archType === 'Absorb') {
+      return av1 === 'Health'
+    }
+    if (archType === 'Value Modifier') {
+      return av1 === 'Health'
+    }
+    if (archType === 'Peak Value Modifier') {
+      return av1 === 'Health'
+    }
+    if (archType === 'Dual Value Modifier') {
+      return av1 === 'Health' || av2 === 'Health'
+    }
+    return false
+  }
+
+  addKeywordRule(record => {
+    const keywords = []
+    if (isDamagingEffect(record)) {
+      let resist = xelib.GetValue(record,
+        'Magic Effect Data\\DATA - Data\\Resist Value')
+      for (const iEffectName of resistRules[resist]) {
+        keywords.push(
+          PatcherManager.getFormID(0, 4 + resistNames.indexOf(iEffectName)))
+      }
+    }
+    return keywords
+  })
+
+  addKeywordRule(record => {
+    const keywords = [PatcherManager.getFormID(0, 0)]
+    let restore = false
+    if (Utils.magicEffectHasFlag(record, 'Detrimental')) {
+      return []
+    }
+    if (Utils.magicEffectHasFlag(record, 'Recover')) {
+      return []
+    }
+    let archType = xelib.GetValue(record,
+      'Magic Effect Data\\DATA - Data\\Archtype')
+    let av1 = xelib.GetValue(record,
+      'Magic Effect Data\\DATA - Data\\Actor Value')
+    let av2 = xelib.GetValue(record,
+      'Magic Effect Data\\DATA - Data\\Second Actor Value')
     if (archType === 'Value Modifier' || archType === 'Peak Value Modifier') {
       if (av1 === 'Health') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 1))
+        keywords.push(PatcherManager.getFormID(0, 1))
       } else if (av1 === 'Magicka') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 2))
+        keywords.push(PatcherManager.getFormID(0, 2))
       } else if (av1 === 'Stamina') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 3))
+        keywords.push(PatcherManager.getFormID(0, 3))
       }
     }
     if (archType === 'Dual Value Modifier') {
       if (av1 === 'Health' || av2 === 'Health') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 1))
+        keywords.push(PatcherManager.getFormID(0, 1))
       }
       if (av1 === 'Magicka' || av2 === 'Magicka') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 2))
+        keywords.push(PatcherManager.getFormID(0, 2))
       }
       if (av1 === 'Stamina' || av2 === 'Stamina') {
         restore = true
-        ret.push(getMasterFormID(name, 0, 3))
+        keywords.push(PatcherManager.getFormID(0, 3))
       }
     }
     if (restore) {
-      return ret
+      return keywords
     }
-
     return []
-  },
-})
+  })
 
-new Patcher({
-  name: 'effect-keywords',
-  after: ['summon-detection', 'spell-damage-detection'],
-  createMaster: function (masterFile) {
-    const formIDs = getFormIDs(this.name, 0)
-    effectKeywords.restoreAttribute = addRecord(masterFile, 'KYWD',
-      'EffectRestoreAttribute', formIDs).getFormID()
-    addRecord(masterFile, 'KYWD', 'EffectRestoreHealth', formIDs)
-    addRecord(masterFile, 'KYWD', 'EffectRestoreMagicka', formIDs)
-    addRecord(masterFile, 'KYWD', 'EffectRestoreStamina', formIDs)
-    for (const name of effectKeywords.resistNames) {
-      addRecord(masterFile, 'KYWD', 'DamageType' + name, formIDs)
+  PatcherManager.add('effect-keywords', 'Magic Effect Keywords',
+    ['summon-detection', 'spell-damage-detection']).master(() => {
+    const formIDs = PatcherManager.getFormIDs(0)
+    Master.addRecord('KYWD', 'EffectRestoreAttribute', formIDs)
+    Master.addRecord('KYWD', 'EffectRestoreHealth', formIDs)
+    Master.addRecord('KYWD', 'EffectRestoreMagicka', formIDs)
+    Master.addRecord('KYWD', 'EffectRestoreStamina', formIDs)
+    for (const iResistName of resistNames) {
+      Master.addRecord('KYWD', 'DamageType' + iResistName, formIDs)
     }
-  },
-  initialize: function (_name) {
-    for (const keywordRule of effectKeywords.keywordRules) {
-      keywordRule.initialize()
+  }).process(record => {
+    for (const iKeywordRule of keywordRules) {
+      const addKeywords = iKeywordRule(record)
+      for (const iFormID of addKeywords) {
+        Utils.addKeyword(record, iFormID)
+      }
     }
-  },
-  process: [
-    {
-      load: {
-        signature: 'MGEF', filter: function (_record, _name) {
-          return true
-        },
-      }, patch: function (record, name) {
-        for (const keywordRule of effectKeywords.keywordRules) {
-          const addKeywords = keywordRule.filter(record, name)
-          for (const formID of addKeywords) {
-            const keyword = xelib.Hex(formID)
-            if (!xelib.HasKeyword(record, keyword)) {
-              xelib.AddKeyword(record, keyword)
-            }
-          }
-        }
-      },
-    }],
-})
+  }, 'MGEF')
+}

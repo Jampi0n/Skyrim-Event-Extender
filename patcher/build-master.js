@@ -1,12 +1,12 @@
+//= require ./src/patcher-modes.js
+const PATCHER_MODE = PatcherModes.BUILD_MASTER
 //= require ./src/include.js
 
-globals.patcherMode = patcherModes.ptBuildMaster
-globals.masterFile = createMasterPlugin()
-const missingPatchers = globals.patcherManager.sort()
+Master.create()
+const missingPatchers = PatcherManager.sort()
 for (const patcher of missingPatchers) {
-  utils.log(
+  Utils.log(
     'Warning: Patcher ' + patcher[0] + ' must run after patcher ' + patcher[1] +
     ', which was not found.')
 }
-globals.patcherManager.create_master(globals.masterFile)
-globals.loadOrderOffset = utils.getLoadOrderOffset(globals.masterFile)
+PatcherManager.createMaster()

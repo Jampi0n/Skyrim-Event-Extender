@@ -1,22 +1,11 @@
-const modName = 'SkyrimEventExtender'
-const authorName = 'Jampion'
+const MOD_NAME = 'SkyrimEventExtender'
+const AUTHOR_NAME = 'Jampion'
 
-const patcherModes = {
-  ptUndefined: 0, ptBuildMaster: 1, ptRunPatcher: 2,
-}
+const MASTER_NAME = MOD_NAME + '.esm'
+const PATCH_NAME = MOD_NAME + '_patch.esp'
+const PREFIX = 'JEE'
+const PREFIX_ = PREFIX + '_'
 
 let globals = {
-  patcherMode: patcherModes.ptUndefined,
-  masterFile: 0,
-  masterName: modName + '.esm',
-  patchFile: 0,
-  patchName: modName + '_patch.esp',
-  editorIDMap: {},
-  helpers: null,
-  settings: null,
-  locals: null,
-  patcherManager: null,
-  loadOrderOffset: 0,
-  prefix: 'JEE',
-  prefix_: 'JEE_',
+  patchFile: 0, editorIDMap: {}, helpers: null, settings: null, locals: null,
 }

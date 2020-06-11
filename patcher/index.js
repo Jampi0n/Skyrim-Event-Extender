@@ -1,19 +1,19 @@
 /* global xelib, registerPatcher */
+//= require ./src/patcher-modes.js
+const PATCHER_MODE = PatcherModes.RUN_PATCHER
 //= require ./src/include.js
 
-globals.patcherMode = patcherModes.ptRunPatcher
-
-const missingPatchers = globals.patcherManager.sort()
+const missingPatchers = PatcherManager.sort()
 
 registerPatcher({
   info: info,
   gameModes: [xelib.gmSSE, xelib.gmTES5],
   settings: {
-    label: modName, hide: true, defaultSettings: {
-      patchFileName: globals.patchName,
+    label: MOD_NAME, hide: true, defaultSettings: {
+      patchFileName: PATCH_NAME,
     },
   },
-  requiredFiles: [globals.masterName],
+  requiredFiles: [MASTER_NAME],
   execute (patchFile, helpers, settings, locals) {
     return {
       initialize: function () {
@@ -23,23 +23,21 @@ registerPatcher({
         globals.locals = locals
 
         for (const patcher of missingPatchers) {
-          utils.log(
+          Utils.log(
             'Warning: Patcher ' + patcher[0] + ' must run after patcher ' +
             patcher[1] + ', which was not found.')
         }
 
-        for (const patcher of globals.patcherManager.patcherOrder) {
-          utils.log(patcher.name)
+        for (const patcher of PatcherManager.patcherOrder_) {
+          Utils.log(patcher.name)
         }
-
-        utils.log('Initializing...')
-        globals.masterFile = xelib.FileByName(globals.masterName)
-        globals.loadOrderOffset = utils.getLoadOrderOffset(globals.masterFile)
-        globals.patcherManager.create_master('')
-        globals.patcherManager.initialize()
-        utils.log('Initialization completed.')
-      }, process: globals.patcherManager.process, finalize: function () {
-        globals.patcherManager.finalize()
+        Utils.log('Initializing...')
+        Master.init()
+        PatcherManager.createMaster()
+        PatcherManager.initialize()
+        Utils.log('Initialization completed.')
+      }, process: PatcherManager.process_, finalize: function () {
+        PatcherManager.finalize()
       },
     }
   },

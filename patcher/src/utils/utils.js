@@ -1,54 +1,88 @@
 /* global zedit, xelib */
 
-const utils = {
-  log: function (msg) {
-    switch (globals.patcherMode) {
-      case(patcherModes.ptBuildMaster):
+class Utils {
+  static log (msg) {
+    switch (PATCHER_MODE) {
+      case(PatcherModes.BUILD_MASTER):
         zedit.log(msg)
         break
-      case(patcherModes.ptRunPatcher):
+      case(PatcherModes.RUN_PATCHER):
         if (globals.helpers !== null) {
           globals.helpers.logMessage(msg)
         }
         break
       default:
     }
-  }, getLoadOrderOffset: function (file) {
+  }
+
+  static getLoadOrderOffset (file) {
     return xelib.GetFileLoadOrder(file) * 0x01000000
-  }, /**
-   * Returns a handle for the winning override of record `id`.
-   * Return 0, if the id is 0.
-   * @param {Number} id
-   * @returns {Number}
-   */
-  winningOverride: function (id) {
+  }
+
+  static winningOverride (id) {
     return id === 0 ? 0 : xelib.GetWinningOverride(id)
-  }, /**
+  }
+
+  /**
    * Adds keyword with FormID keyword to record id.
    * @param {Number} record
    * @param {Number} keyword
    */
-  addKeyword: function (record, keyword) {
-    if (!utils.hasKeyword(record, keyword)) {
+  static addKeyword (record, keyword) {
+    if (!Utils.hasKeyword(record, keyword)) {
       xelib.AddKeyword(record, xelib.GetHexFormID(xelib.GetRecord(0, keyword)))
     }
-  }, /**
+  }
+
+  /**
    * Returns whether record id has the keyword with FormID keyword.
    * @param {Number} record
    * @param {Number} keyword
    * @returns {Boolean}
    */
-  hasKeyword: function (record, keyword) {
+  static hasKeyword (record, keyword) {
     return xelib.HasKeyword(record,
       xelib.GetHexFormID(xelib.GetRecord(0, keyword)))
-  }, /**
+  }
+
+  /**
    * Returns whether magicEffect has the specified flag.
    * @param magicEffect
    * @param flag
    * @returns {Boolean}
    */
-  magicEffectHasFlag: function (magicEffect, flag) {
+  static magicEffectHasFlag (magicEffect, flag) {
     return xelib.GetFlag(magicEffect, 'Magic Effect Data\\DATA - Data\\Flags',
       flag)
-  },
+  }
+
+  static createFile (fileName) {
+    let file = xelib.FileByName(fileName)
+    if (file === 0) {
+      file = xelib.AddFile(fileName)
+    } else {
+      xelib.NukeFile(file)
+      xelib.CleanMasters(file)
+    }
+    return file
+  }
+
+  static removeFromArray (array, element) {
+    const index = array.indexOf(element)
+    if (index >= 0) {
+      array.splice(index, 1)
+      return true
+    }
+    return false
+  }
+
+  /**
+   *
+   * @param {string} string
+   * @param {string} prefix
+   */
+  static removePrefix (string, prefix) {
+    return string.slice(prefix.length)
+  }
+
 }

@@ -1,24 +1,22 @@
 /* global xelib */
-'use strict'
-/**
- * Adds a script to all summoning magic effects to track the number and power
- * of summons the player has. The power of summon creature effects depends on
- * the creature level. The power of reanimation effects depends on the maximum
- * level the spell can target.
- */
 
-let summonDetection = {
-  name: 'Summon Detection',
+{
+  /**
+   *
+   * @param {number} record
+   * @return {boolean}
+   */
+  function isSummoningEffect (record) {
+    const archtype = xelib.GetValue(record,
+      'Magic Effect Data\\DATA - Data\\Archtype')
+    return archtype === 'Summon Creature' || archtype === 'Reanimate'
+  }
 
-  load: {
-    signature: 'MGEF', filter: function (record) {
-      let archtype = xelib.GetValue(record,
-        'Magic Effect Data\\DATA - Data\\Archtype')
-      return archtype === 'Summon Creature' || archtype === 'Reanimate'
-    },
-  },
-
-  patch: function (record) {
+  /**
+   *
+   * @param {number} record
+   */
+  function patchSummoningEffect (record) {
     xelib.AddElement(record, 'VMAD - Virtual Machine Adapter')
     xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Version', '5')
     xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Object Format', '2')
@@ -31,38 +29,17 @@ let summonDetection = {
       let level = xelib.GetIntValue(summonedActor,
         'ACBS - Configuration\\Level')
 
-      let script = xelib.AddScript(record, 'JEE_SummonCreature', 'Local')
+      const script = ScriptUtils.addScript(record, PREFIX_ + 'SummonCreature')
+      ScriptUtils.addPlayerProperty(script)
+      ScriptUtils.addIntProperty(script, 'level', level)
 
-      let property = xelib.AddScriptProperty(script, 'PlayerRef', 'Object',
-        'Edited')
-      xelib.SetUIntValue(property, 'Value\\Object Union\\Object v2\\FormID',
-        0x14)
-      xelib.SetValue(property, 'Value\\Object Union\\Object v2\\Alias', 'None')
-
-      property = xelib.AddScriptProperty(script, 'level', 'Int32', 'Edited')
-      xelib.SetValue(property, 'Value', '' + level)
     } else if (archType === 'Reanimate') {
-      let script = xelib.AddScript(record, 'JEE_Reanimate', 'Local')
-
-      let property = xelib.AddScriptProperty(script, 'PlayerRef', 'Object',
-        'Edited')
-      xelib.SetUIntValue(property, 'Value\\Object Union\\Object v2\\FormID',
-        0x14)
-      xelib.SetValue(property, 'Value\\Object Union\\Object v2\\Alias', 'None')
+      const script = ScriptUtils.addScript(record, PREFIX_ + 'Reanimate')
+      ScriptUtils.addPlayerProperty(script)
     }
-  },
-}
+  }
 
-new Patcher({
-  name: 'summon-detection', after: ['spell-damage-detection'], process: [
-    {
-      load: {
-        signature: summonDetection.load.signature,
-        filter: function (record, _name) {
-          return summonDetection.load.filter(record)
-        },
-      }, patch: function (record, _name) {
-        summonDetection.patch(record)
-      },
-    }],
-})
+  PatcherManager.add('summon-detection', 'Summoning Effect Detection',
+    ['spell-damage-detection']).
+    process(patchSummoningEffect, 'MGEF', isSummoningEffect)
+}

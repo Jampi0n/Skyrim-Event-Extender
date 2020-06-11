@@ -1,6 +1,6 @@
 // Version 1.0
-allocateFormIDs('create-master-plugin', 1)
+Allocator.alloc('create-master-plugin', 1)
 
-allocateFormIDs('effect-keywords', 14)
-allocateFormIDs('enchantment-keywords', 2)
-allocateFormIDs('shout-perk', 1)
+Allocator.alloc('effect-keywords', 14)
+Allocator.alloc('enchantment-keywords', 2)
+Allocator.alloc('shout-perk', 1)
