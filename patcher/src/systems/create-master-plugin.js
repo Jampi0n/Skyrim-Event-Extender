@@ -1,35 +1,35 @@
 /* global xelib */
 
 class Record {
-  /** @type {number} */ formID_ = -1
-  /** @type {number} */ id_     = -1
+  /** @type {number}*/ formID
+  /** @type {number} */ xelibHandle
 
   /**
-   *
-   * @param {number} id
+   * Creates a new Record wrapper.
+   * @param {number} xelibHandle
    * @param {number} formID
    */
-  constructor (id, formID) {
-    this.id_     = id
-    this.formID_ = formID
+  constructor (xelibHandle, formID) {
+    this.xelibHandle = xelibHandle
+    this.formID      = formID
   }
 
   /**
-   *
+   * Runs the initialize callback for the record. The callback only runs if the script runs in build master mode.
    * @param {function(number):void} initialize
    */
   init (initialize) {
-    if (this.id_ !== 0 && PATCHER_MODE === PatcherModes.BUILD_MASTER) {
-      initialize(this.id_)
+    if (this.xelibHandle !== 0 && PATCHER_MODE === PatcherModes.BUILD_MASTER) {
+      initialize(this.xelibHandle)
     }
   }
 
   /**
-   *
+   * Returns the
    * @return {number}
    */
   getFormID () {
-    return this.formID_
+    return this.formID
   }
 }
 
@@ -40,11 +40,11 @@ class Master {
   /** @type {number} */ static file
 
   /**
-   *
+   * Creates a new record in the master file. You can use Master.fromEditorID(...) to retrieve the formID afterwards.
    * @param {string} signature
    * @param {string} editorID
-   * @param {number[]} formIDs
-   * @return {Record}
+   * @param {number[]} formIDs Use Patcher.getFormIDs() to retrieve formID group.
+   * @return {Record} Record wrapper of the new record.
    */
   static addRecord (signature, editorID, formIDs) {
     if (formIDs[2] < formIDs[1]) {
@@ -69,7 +69,7 @@ class Master {
   }
 
   /**
-   *
+   * Initializes variables after the master file was created.
    */
   static init () {
     this.file            = xelib.FileByName(MASTER_NAME)
@@ -77,7 +77,7 @@ class Master {
   }
 
   /**
-   *
+   * Create the master file. Initializes the file header and adds the main quest record.
    */
   static create () {
     Utils.createFile(MASTER_NAME)
@@ -133,7 +133,7 @@ class Master {
   }
 
   /**
-   *
+   * Returns the formID for a editorID. The record must have been created with Master.addRecord(...).
    * @param {string} editorID
    * @return {number}
    */

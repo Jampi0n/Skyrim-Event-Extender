@@ -39,6 +39,6 @@
     }
   }
 
-  PatcherManager.add('summon-detection', 'Summoning Effect Detection',
+  Patcher.add('summon-detection', 'Summoning Effect Detection',
     ['spell-damage-detection']).process(patchSummoningEffect, 'MGEF', isSummoningEffect)
 }

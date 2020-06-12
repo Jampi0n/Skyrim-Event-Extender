@@ -78,14 +78,14 @@
         'Magic Effect Data\\DATA - Data\\Resist Value')
       for (const iEffectName of resistRules[resist]) {
         keywords.push(
-          PatcherManager.getFormID(0, 4 + resistNames.indexOf(iEffectName)))
+          Patcher.getFormID(0, 4 + resistNames.indexOf(iEffectName)))
       }
     }
     return keywords
   })
 
   addKeywordRule(record => {
-    const keywords = [PatcherManager.getFormID(0, 0)]
+    const keywords = [Patcher.getFormID(0, 0)]
     let restore    = false
     if (Utils.magicEffectHasFlag(record, 'Detrimental')) {
       return []
@@ -102,27 +102,27 @@
     if (archType === 'Value Modifier' || archType === 'Peak Value Modifier') {
       if (av1 === 'Health') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 1))
+        keywords.push(Patcher.getFormID(0, 1))
       } else if (av1 === 'Magicka') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 2))
+        keywords.push(Patcher.getFormID(0, 2))
       } else if (av1 === 'Stamina') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 3))
+        keywords.push(Patcher.getFormID(0, 3))
       }
     }
     if (archType === 'Dual Value Modifier') {
       if (av1 === 'Health' || av2 === 'Health') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 1))
+        keywords.push(Patcher.getFormID(0, 1))
       }
       if (av1 === 'Magicka' || av2 === 'Magicka') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 2))
+        keywords.push(Patcher.getFormID(0, 2))
       }
       if (av1 === 'Stamina' || av2 === 'Stamina') {
         restore = true
-        keywords.push(PatcherManager.getFormID(0, 3))
+        keywords.push(Patcher.getFormID(0, 3))
       }
     }
     if (restore) {
@@ -131,9 +131,9 @@
     return []
   })
 
-  PatcherManager.add('effect-keywords', 'Magic Effect Keywords',
+  Patcher.add('effect-keywords', 'Magic Effect Keywords',
     ['summon-detection', 'spell-damage-detection']).master(() => {
-    const formIDs = PatcherManager.getFormIDs(0)
+    const formIDs = Patcher.getFormIDs(0)
     Master.addRecord('KYWD', 'EffectRestoreAttribute', formIDs)
     Master.addRecord('KYWD', 'EffectRestoreHealth', formIDs)
     Master.addRecord('KYWD', 'EffectRestoreMagicka', formIDs)

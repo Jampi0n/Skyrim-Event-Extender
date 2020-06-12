@@ -1,6 +1,12 @@
 /* globals xelib */
 
 class ScriptUtils {
+  /**
+   *
+   * @param record
+   * @param scriptName
+   * @return {Number}
+   */
   static addScript (record, scriptName) {
     if (!xelib.HasElement(record, 'VMAD - Virtual Machine Adapter')) {
       const vmad = xelib.AddElement(record, 'VMAD - Virtual Machine Adapter')
@@ -10,6 +16,13 @@ class ScriptUtils {
     return xelib.AddScript(record, scriptName, 'Local')
   }
 
+  /**
+   *
+   * @param script
+   * @param propertyName
+   * @param int
+   * @return {Number}
+   */
   static addIntProperty (script, propertyName, int) {
     const property = xelib.AddScriptProperty(script, propertyName, 'Int32',
       'Edited')
@@ -17,6 +30,13 @@ class ScriptUtils {
     return property
   }
 
+  /**
+   *
+   * @param script
+   * @param propertyName
+   * @param float
+   * @return {Number}
+   */
   static addFloatProperty (script, propertyName, float) {
     const property = xelib.AddScriptProperty(script, propertyName, 'Float',
       'Edited')
@@ -24,6 +44,13 @@ class ScriptUtils {
     return property
   }
 
+  /**
+   *
+   * @param script
+   * @param propertyName
+   * @param bool
+   * @return {Number}
+   */
   static addBoolProperty (script, propertyName, bool) {
     const property = xelib.AddScriptProperty(script, propertyName, 'Bool',
       'Edited')
@@ -31,6 +58,13 @@ class ScriptUtils {
     return property
   }
 
+  /**
+   *
+   * @param script
+   * @param propertyName
+   * @param string
+   * @return {Number}
+   */
   static addStringProperty (script, propertyName, string) {
     const property = xelib.AddScriptProperty(script, propertyName, 'String',
       'Edited')
@@ -38,6 +72,13 @@ class ScriptUtils {
     return property
   }
 
+  /**
+   *
+   * @param script
+   * @param propertyName
+   * @param formID
+   * @return {Number}
+   */
   static addObjectProperty (script, propertyName, formID) {
     const property = xelib.AddScriptProperty(script, propertyName, 'Object',
       'Edited')
@@ -47,6 +88,10 @@ class ScriptUtils {
     return property
   }
 
+  /**
+   *
+   * @param script
+   */
   static addPlayerProperty (script) {
     this.addObjectProperty(script, 'PlayerRef', 0x14)
   }

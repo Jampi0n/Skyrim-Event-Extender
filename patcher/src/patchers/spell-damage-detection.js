@@ -477,12 +477,12 @@
     return false
   }
 
-  PatcherManager.add('spell-damage-detection', 'Damage Spells Bonus Effects')
-                .begin(() => initialize())
-                .process(parseSourceSpell, 'SPEL',
-                  record => {
-                    return xelib.EditorID(record).startsWith(PREFIX + '_BE_')
-                  })
-                .process(patchSpell, 'SPEL', filterSpell)
+  Patcher.add('spell-damage-detection', 'Damage Spells Bonus Effects')
+         .begin(() => initialize())
+         .process(parseSourceSpell, 'SPEL',
+           record => {
+             return xelib.EditorID(record).startsWith(PREFIX + '_BE_')
+           })
+         .process(patchSpell, 'SPEL', filterSpell)
 
 }

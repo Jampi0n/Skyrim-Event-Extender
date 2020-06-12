@@ -3,7 +3,7 @@
 const PATCHER_MODE = PatcherModes.RUN_PATCHER
 //= require ./src/include.js
 
-const missingPatchers = PatcherManager.sort()
+const missingPatchers = Patcher.sort()
 
 registerPatcher({
   info: info,
@@ -30,18 +30,18 @@ registerPatcher({
             patcher[1] + ', which was not found.')
         }
 
-        for (const patcher of PatcherManager.patcherOrder_) {
+        for (const patcher of Patcher.patcherOrder) {
           Utils.log(patcher.name)
         }
         Utils.log('Initializing...')
         Master.init()
-        PatcherManager.createMaster()
-        PatcherManager.initialize()
+        Patcher.createMaster()
+        Patcher.initialize()
         Utils.log('Initialization completed.')
       },
-      process: PatcherManager.process_,
+      process: Patcher.process,
       finalize: function () {
-        PatcherManager.finalize()
+        Patcher.finalize()
       },
     }
   },

@@ -2,7 +2,7 @@
 
 {
   let perkList = []
-  PatcherManager.add('actor-perks', 'Actor Perk Distributor').begin(() => {
+  Patcher.add('actor-perks', 'Actor Perk Distributor').begin(() => {
     perkList = []
   }).process(record => {
       perkList.push(xelib.GetHexFormID(record))

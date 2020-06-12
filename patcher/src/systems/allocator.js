@@ -3,7 +3,8 @@ class Allocator {
   static formIDMap_ = {}
 
   /**
-   *
+   * Allocates a number of consecutive formIDs for the patcher with identifier patcherIdentifier. The formIDs are added
+   * as new formID group.
    * @param {string} patcherIdentifier
    * @param {number} count
    */
@@ -18,7 +19,7 @@ class Allocator {
   }
 
   /**
-   *
+   * Retrieves a formID group for the patcher with identifier patcherIdentifier.
    * @param {string} patcherIdentifier
    * @param {number} group
    * @return {number[]}
@@ -32,7 +33,7 @@ class Allocator {
   }
 
   /**
-   *
+   * Retrieves formID at index in group for the patcher with identifier patcherIdentifier.
    * @param {string} patcherIdentifier
    * @param {number} group
    * @param {number} index

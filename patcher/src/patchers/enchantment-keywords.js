@@ -35,9 +35,8 @@
       !xelib.HasKeyword(record, xelib.Hex(0x000C27BD))
   }
 
-  PatcherManager.add('enchantment-keywords', 'Enchantment Effect Keywords').master(() => {
-    const formIDs = Allocator.getFormIDs(
-      PatcherManager.getCurrentPatcher().getIdentifier(), 0)
+  Patcher.add('enchantment-keywords', 'Enchantment Effect Keywords').master(() => {
+    const formIDs = Patcher.getFormIDs(0)
     Master.addRecord('KYWD', 'EnchantmentApparel', formIDs)
     Master.addRecord('KYWD', 'EnchantmentWeapon', formIDs)
   }).process((record) => {
