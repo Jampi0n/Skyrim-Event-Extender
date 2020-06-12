@@ -12,7 +12,8 @@
     'MagicOrElemental',
     'Poison',
     'Disease',
-    'Damage']
+    'Damage',
+  ]
   const resistRules = {
     'None': ['Any', 'None'],
     'Resist Fire': ['Any', 'Fire', 'Elemental', 'MagicOrElemental'],
@@ -51,9 +52,9 @@
     }
     let archType = xelib.GetValue(magicEffect,
       'Magic Effect Data\\DATA - Data\\Archtype')
-    let av1 = xelib.GetValue(magicEffect,
+    let av1      = xelib.GetValue(magicEffect,
       'Magic Effect Data\\DATA - Data\\Actor Value')
-    let av2 = xelib.GetValue(magicEffect,
+    let av2      = xelib.GetValue(magicEffect,
       'Magic Effect Data\\DATA - Data\\Second Actor Value')
     if (archType === 'Absorb') {
       return av1 === 'Health'
@@ -85,7 +86,7 @@
 
   addKeywordRule(record => {
     const keywords = [PatcherManager.getFormID(0, 0)]
-    let restore = false
+    let restore    = false
     if (Utils.magicEffectHasFlag(record, 'Detrimental')) {
       return []
     }
@@ -94,9 +95,9 @@
     }
     let archType = xelib.GetValue(record,
       'Magic Effect Data\\DATA - Data\\Archtype')
-    let av1 = xelib.GetValue(record,
+    let av1      = xelib.GetValue(record,
       'Magic Effect Data\\DATA - Data\\Actor Value')
-    let av2 = xelib.GetValue(record,
+    let av2      = xelib.GetValue(record,
       'Magic Effect Data\\DATA - Data\\Second Actor Value')
     if (archType === 'Value Modifier' || archType === 'Peak Value Modifier') {
       if (av1 === 'Health') {

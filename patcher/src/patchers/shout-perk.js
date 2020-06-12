@@ -16,10 +16,10 @@
    * @return {boolean}
    */
   function isShout (record) {
-    const words = []
-    const spells = []
+    const words      = []
+    const spells     = []
     const spellLinks = []
-    const cooldowns = []
+    const cooldowns  = []
 
     for (let i = 0; i < 3; ++i) {
       const path = getWordPath(i)
@@ -59,8 +59,8 @@
    */
   function patchShout (record) {
     for (let i = 0; i < 3; ++i) {
-      let spell = xelib.GetLinksTo(record, getWordPath(i) + 'Spell')
-      spell = xelib.GetWinningOverride(spell)
+      let spell       = xelib.GetLinksTo(record, getWordPath(i) + 'Spell')
+      spell           = xelib.GetWinningOverride(spell)
       let currentPerk = xelib.GetLinksTo(spell, 'SPIT - Data\\Half-cost Perk')
       if (currentPerk !== 0) {
         let currentPerkFormID = xelib.GetFormID(currentPerk)
@@ -77,10 +77,9 @@
   }
 
   PatcherManager.add('shout-perk', 'Shout Spell Detection').master(() => {
-    Master.addRecord('PERK', 'SpellIsShout', PatcherManager.getFormIDs(0)).
-      init(function (record) {
-        xelib.AddElement(record, 'FULL - Name')
-        xelib.SetValue(record, 'FULL - Name', 'Spell Is Shout')
-      })
+    Master.addRecord('PERK', 'SpellIsShout', PatcherManager.getFormIDs(0)).init(function (record) {
+      xelib.AddElement(record, 'FULL - Name')
+      xelib.SetValue(record, 'FULL - Name', 'Spell Is Shout')
+    })
   }).process(patchShout, 'SHOU', isShout)
 }

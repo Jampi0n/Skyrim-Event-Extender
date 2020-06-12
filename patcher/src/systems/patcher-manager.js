@@ -1,8 +1,8 @@
 class PatcherManager {
-  /** @type {Patcher[]} */  static patchers_ = []
-  /** @type {Object} */     static patcherMap_ = {}
-  /** @type {Patcher[]} */  static patcherOrder_ = []
-  /** @type {Object[]} */   static process_ = []
+  /** @type {Patcher[]} */  static patchers_       = []
+  /** @type {Object} */     static patcherMap_     = {}
+  /** @type {Patcher[]} */  static patcherOrder_   = []
+  /** @type {Object[]} */   static process_        = []
   /** @type {Patcher} */    static currentPatcher_ = null
 
   static getCurrentPatcher () {
@@ -31,10 +31,10 @@ class PatcherManager {
 
   static sort () {
 
-    /** @type {number[][]} */ const runAfterIds = []
-    /** @type {number[]} */ const remainingPatchersIds = []
+    /** @type {number[][]} */ const runAfterIds         = []
+    /** @type {number[]} */ const remainingPatchersIds  = []
     /** @type {string[][]} */ const missingPatcherNames = []
-    /** @type {number[]} */ const noRunAfterIds = []
+    /** @type {number[]} */ const noRunAfterIds         = []
 
     // Store list of runAfterIds for every patcher.
     // Add patcherIds with no runAfters to noRunAfterIds.
@@ -80,7 +80,8 @@ class PatcherManager {
               PatcherManager.currentPatcher_ = iPatcher
               return iSingleProcess.load.filter(record)
             },
-          }, patch: function (record) {
+          },
+          patch: function (record) {
             PatcherManager.currentPatcher_ = iPatcher
             iSingleProcess.patch(record)
           },

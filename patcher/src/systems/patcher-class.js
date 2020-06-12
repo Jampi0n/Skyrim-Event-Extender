@@ -23,9 +23,9 @@
  */
 
 class Patcher {
-  /** @type {string} */           identifier_ = ''
-  /** @type {string} */           displayName_ = ''
-  /** @type {string[]} */         runAfter_ = []
+  /** @type {string} */           identifier_    = ''
+  /** @type {string} */           displayName_   = ''
+  /** @type {string[]} */         runAfter_      = []
   /** @type {processBlock[]} */   processBlocks_ = []
 
   /**
@@ -35,9 +35,9 @@ class Patcher {
    * @param {string[]} [runAfter=[]]
    */
   constructor (identifier, displayName, runAfter = []) {
-    this.identifier_ = identifier
+    this.identifier_  = identifier
     this.displayName_ = displayName
-    this.runAfter_ = runAfter
+    this.runAfter_    = runAfter
   }
 
   /**
@@ -49,8 +49,10 @@ class Patcher {
   process (patch, signature, filter = (_record) => true) {
     this.processBlocks_.push({
       load: {
-        signature: signature, filter: filter,
-      }, patch: patch,
+        signature: signature,
+        filter: filter,
+      },
+      patch: patch,
     })
     return this
   }
@@ -88,41 +90,52 @@ class Patcher {
   /**
    * Runs the createMaster(patcher) function of the patcher.
    */
-  createMaster () { }
+  createMaster () {
+  }
 
   /**
    * Runs the initialize(patcher) function of the patcher.
    */
-  initialize () { }
+  initialize () {
+  }
 
   /**
    * Runs the finalize(patcher) function of the patcher.
    */
-  finalize () { }
+  finalize () {
+  }
 
   /**
    * Returns the identifier of the patcher.
    * @return {string}
    */
-  getIdentifier () { return this.identifier_}
+  getIdentifier () {
+    return this.identifier_
+  }
 
   /**
    * Returns the display name of the patcher.
    * @return {string}
    */
-  getDisplayName () {return this.displayName_}
+  getDisplayName () {
+    return this.displayName_
+  }
 
   /**
    * Returns the identifiers of patchers after which the patcher runs.
    * @return {string[]}
    */
-  getRunAfter () { return this.runAfter_.slice()}
+  getRunAfter () {
+    return this.runAfter_.slice()
+  }
 
   /**
    * Returns the process blocks of the patcher.
    * @return {processBlock[]}
    */
-  getProcessBlocks () {return this.processBlocks_}
+  getProcessBlocks () {
+    return this.processBlocks_
+  }
 
 }
 

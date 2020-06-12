@@ -1,5 +1,5 @@
 class Allocator {
-  static nextID_ = 0x800
+  static nextID_    = 0x800
   static formIDMap_ = {}
 
   /**

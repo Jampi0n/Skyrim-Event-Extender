@@ -9,7 +9,9 @@ registerPatcher({
   info: info,
   gameModes: [xelib.gmSSE, xelib.gmTES5],
   settings: {
-    label: MOD_NAME, hide: true, defaultSettings: {
+    label: MOD_NAME,
+    hide: true,
+    defaultSettings: {
       patchFileName: PATCH_NAME,
     },
   },
@@ -18,9 +20,9 @@ registerPatcher({
     return {
       initialize: function () {
         globals.patchFile = patchFile
-        globals.helpers = helpers
-        globals.settings = settings
-        globals.locals = locals
+        globals.helpers   = helpers
+        globals.settings  = settings
+        globals.locals    = locals
 
         for (const patcher of missingPatchers) {
           Utils.log(
@@ -36,7 +38,9 @@ registerPatcher({
         PatcherManager.createMaster()
         PatcherManager.initialize()
         Utils.log('Initialization completed.')
-      }, process: PatcherManager.process_, finalize: function () {
+      },
+      process: PatcherManager.process_,
+      finalize: function () {
         PatcherManager.finalize()
       },
     }

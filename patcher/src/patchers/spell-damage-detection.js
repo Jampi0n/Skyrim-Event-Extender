@@ -3,51 +3,57 @@
 {
   const BONUS_EFFECT_PREFIX_ = PREFIX_ + 'BE_'
 
-  class ResistanceType {
+  class ResistType {
+    name
+    resistValue
+    index
+    static AllTypes = []
+
     constructor (name, resistValue) {
-      this.name = name
+      this.name        = name
       this.resistValue = resistValue
+      this.index       = ResistType.AllTypes.length
+      ResistType.AllTypes.push(this)
     }
   }
 
   class BonusEffect {
     constructor (magicEffectFormID, magnitudeFactor) {
       this.magicEffectFormID = magicEffectFormID
-      this.magnitudeFactor = magnitudeFactor
+      this.magnitudeFactor   = magnitudeFactor
     }
   }
 
-  const RT_ARRAY = [
-    new ResistanceType('None', 'None', 0),
-    new ResistanceType('Fire', 'Resist Fire', 1),
-    new ResistanceType('Frost', 'Resist Frost', 2),
-    new ResistanceType('Shock', 'Resist Shock', 3),
-    new ResistanceType('Magic', 'Resist Magic', 4),
-    new ResistanceType('Poison', 'Poison Resist', 5),
-    new ResistanceType('Disease', 'Disease Resist', 6),
-    new ResistanceType('Physical', 'Damage Resist', 7)]
+  new ResistType('None', 'None')
+  new ResistType('Fire', 'Resist Fire')
+  new ResistType('Frost', 'Resist Frost')
+  new ResistType('Shock', 'Resist Shock')
+  new ResistType('Magic', 'Resist Magic')
+  new ResistType('Poison', 'Poison Resist')
+  new ResistType('Disease', 'Disease Resist')
+  new ResistType('Physical', 'Damage Resist')
 
-  function getResistanceType (record) {
+  function getResistType (record) {
     let resistValue = xelib.GetValue(record,
       'Magic Effect Data\\DATA - Data\\Resist Value')
 
-    for (let i = 0; i < RT_ARRAY.length; ++i) {
-      if (resistValue === RT_ARRAY[i].resistValue) {
+    for (let i = 0; i < ResistType.AllTypes.length; ++i) {
+      if (resistValue === ResistType.AllTypes[i].resistValue) {
         return i
       }
     }
     return -1
   }
 
-  let spellListConc = []
+  let spellListConc          = []
   let spellListFireAndForget = []
-  let copiedMagicEffects = null
+  let copiedMagicEffects     = null
 
   function initialize () {
-    for (const iResistType of RT_ARRAY) {
+    copiedMagicEffects = new Map([[0, 0]])
+    for (const iResistType of ResistType.AllTypes) {
       spellListConc.push([])
       spellListFireAndForget.push([])
-      copiedMagicEffects = new Map([[0, 0]])
     }
   }
 
@@ -56,7 +62,10 @@
    * @enum {number}
    */
   const CastTypes = {
-    NONE: 0, FIRE_AND_FORGET: 1, CONCENTRATION: 2, ANY: 3,
+    NONE: 0,
+    FIRE_AND_FORGET: 1,
+    CONCENTRATION: 2,
+    ANY: 3,
   }
 
   /**
@@ -77,9 +86,10 @@
    * @return {{string:string, castType:CastTypes}}
    */
   function parseCastType (string) {
-    const prefixes = ['FF_', 'CONC_', 'ANY_']
+    const prefixes  = ['FF_', 'CONC_', 'ANY_']
     const castTypes = [
-      CastTypes.FIRE_AND_FORGET, CastTypes.CONCENTRATION, CastTypes.ANY]
+      CastTypes.FIRE_AND_FORGET, CastTypes.CONCENTRATION, CastTypes.ANY,
+    ]
     for (let i = 0; i < 3; ++i) {
       if (string.startsWith(prefixes[i])) {
         return {
@@ -88,19 +98,22 @@
         }
       }
     }
-    return { string: string, castType: CastTypes.NONE }
+    return {
+      string: string,
+      castType: CastTypes.NONE,
+    }
   }
 
   /**
    * Checks for resistance type prefixes and removes them.
    * @param {string} string
-   * @return {ResistanceType[]}
+   * @return {{string:string, resistTypes:ResistType[]}}
    */
   function parseResistTypes (string) {
     const resistTypes = []
     while (true) {
       const prev = string
-      for (const iResistType of RT_ARRAY) {
+      for (const iResistType of ResistType.AllTypes) {
         const prefix = iResistType.name + '_'
         if (string.startsWith(prefix)) {
           string = Utils.removePrefix(string, prefix)
@@ -111,7 +124,10 @@
         break
       }
     }
-    return resistTypes
+    return {
+      string: string,
+      resistTypes: resistTypes,
+    }
   }
 
   /**
@@ -123,7 +139,7 @@
     editorID = parsePrefix(editorID)
     if (editorID) {
       editorID = parseCastType(editorID).string
-      editorID = parseResistTypes(editorID)
+      editorID = parseResistTypes(editorID).string
     }
     return editorID
   }
@@ -134,26 +150,35 @@
    */
   function parseSourceSpell (record) {
     let editorID = xelib.EditorID(record)
-
+    Utils.log('1:' + editorID)
     editorID = parsePrefix(editorID)
-    const result = parseCastType(editorID)
-    const resistTypes = parseResistTypes(editorID)
-    const fireAndForget = result.castType === CastTypes.ANY ||
-      result.castType === CastTypes.FIRE_AND_FORGET
-    const concentration = result.castType === CastTypes.ANY ||
-      result.castType === CastTypes.CONCENTRATION
+    Utils.log('2:' + editorID)
 
-    for (let i = 0; i < resistTypes.length; ++i) {
+    let result     = parseCastType(editorID)
+    const castType = result.castType
+    Utils.log('3:' + result.string)
+    Utils.log('3:' + result.castType)
+
+    result            = parseResistTypes(result.string)
+    const resistTypes = result.resistTypes
+    Utils.log('4:' + result.string)
+    Utils.log('4:' + JSON.stringify(result.resistTypes))
+
+    const fireAndForget = castType === CastTypes.ANY || castType === CastTypes.FIRE_AND_FORGET
+    const concentration = castType === CastTypes.ANY || castType === CastTypes.CONCENTRATION
+
+    for (const iResistType of resistTypes) {
       const formID = xelib.GetHexFormID(record)
+      const index  = iResistType.index
       if (concentration) {
-        spellListConc[i].push(record)
+        spellListConc[index].push(record)
         Utils.log(
-          `Adding spell ${formID} to spell list of type ${RT_ARRAY[i].name} for concentration spells.`)
+          `Adding spell ${formID} to spell list of type ${ResistType.AllTypes[index].name} for concentration spells.`)
       }
       if (fireAndForget) {
-        spellListFireAndForget[i].push(record)
+        spellListFireAndForget[index].push(record)
         Utils.log(
-          `Adding spell ${formID} to spell list of type ${RT_ARRAY[i].name} for fire and forget spells.`)
+          `Adding spell ${formID} to spell list of type ${ResistType.AllTypes[index].name} for fire and forget spells.`)
       }
     }
   }
@@ -261,7 +286,7 @@
             'Magic Effect Data\\DATA - Data\\Spellmaking\\Casting Time',
             xelib.GetValue(baseEffect,
               'Magic Effect Data\\DATA - Data\\Spellmaking\\Casting Time'))
-          
+
           for (let k = 0; true; ++k) {
             let originalCondition = xelib.GetElement(baseEffect,
               'Conditions\\[' + k + ']')
@@ -283,7 +308,7 @@
               'HasMagicEffect') {
               let conditionMagicEffectID = xelib.GetUIntValue(condition,
                 'CTDA - \\Parameter #1')
-              let sourceBaseID = xelib.GetFormID(sourceBase)
+              let sourceBaseID           = xelib.GetFormID(sourceBase)
               if (conditionMagicEffectID === sourceBaseID) {
                 xelib.SetUIntValue(condition, 'CTDA - \\Parameter #1',
                   xelib.GetFormID(copy))
@@ -306,8 +331,7 @@
           }
 
           let bonusEffect = new BonusEffect(xelib.GetFormID(copy), magnitude)
-          copiedMagicEffects.get(magicEffectFormID).
-            push(bonusEffect)
+          copiedMagicEffects.get(magicEffectFormID).push(bonusEffect)
         }
       }
     }
@@ -315,10 +339,10 @@
     // Find the stored bonus effects for each magic effect and add them to the
     // spell
     if (copiedMagicEffects.has(magicEffectFormID)) {
-      let oldEffect = xelib.GetElement(spell, 'Effects\\[' + effectIndex + ']')
+      let oldEffect    = xelib.GetElement(spell, 'Effects\\[' + effectIndex + ']')
       let bonusEffects = copiedMagicEffects.get(magicEffectFormID)
       for (let i = 0; i < bonusEffects.length; ++i) {
-        let newEffect = xelib.CopyElement(oldEffect, spell)
+        let newEffect   = xelib.CopyElement(oldEffect, spell)
         let bonusEffect = bonusEffects[i]
 
         xelib.SetUIntValue(newEffect, 'EFID - Base Effect',
@@ -341,11 +365,12 @@
    * @param record
    */
   function patchSpell (record) {
-    const numberOfMagicEffects = doForAllEffects(record, (_) => {})
+    const numberOfMagicEffects = doForAllEffects(record, (_) => {
+    })
     for (let i = 0; i < numberOfMagicEffects; ++i) {
-      let patchEffect = false
+      let patchEffect   = false
       const magicEffect = getEffect(record, i)
-      const effectPath = 'Effects\\[' + i + ']\\EFIT - \\'
+      const effectPath  = 'Effects\\[' + i + ']\\EFIT - \\'
       if (!Utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
         continue
       }
@@ -356,9 +381,9 @@
         continue
       }
       const dataPath = 'Magic Effect Data\\DATA - Data\\'
-      let archtype = xelib.GetValue(magicEffect, dataPath + 'Archtype')
-      let av1 = xelib.GetValue(magicEffect, dataPath + 'Actor Value')
-      let av2 = xelib.GetValue(magicEffect, dataPath + 'Second Actor Value')
+      let archtype   = xelib.GetValue(magicEffect, dataPath + 'Archtype')
+      let av1        = xelib.GetValue(magicEffect, dataPath + 'Actor Value')
+      let av2        = xelib.GetValue(magicEffect, dataPath + 'Second Actor Value')
       if (archtype === 'Value Modifier' || archtype === 'Peak Value Modifier') {
         if (av1 === 'Health') {
           patchEffect = true
@@ -367,7 +392,7 @@
       let secondActorValue = false
       if (archtype === 'Dual Value Modifier') {
         if (av2 === 'Health') {
-          patchEffect = true
+          patchEffect      = true
           secondActorValue = true
           if (av1 === 'Health') {
             let formID = xelib.GetHexFormID(record)
@@ -380,16 +405,16 @@
       }
 
       // Get resist value
-      let resistanceType = getResistanceType(magicEffect)
-      if (resistanceType === -1) {
+      let resistType = getResistType(magicEffect)
+      if (resistType === -1) {
         let formID = xelib.GetHexFormID(record)
-        Utils.log('Unknown resistance type: ' + formID)
+        Utils.log('Unknown resist type: ' + formID)
         patchEffect = false
       }
 
       // All checks passed, patch the spell + magic effect
       if (patchEffect) {
-        patchSpellEffect(record, magicEffect, resistanceType, i,
+        patchSpellEffect(record, magicEffect, resistType, i,
           secondActorValue)
       }
     }
@@ -434,9 +459,9 @@
       }
       let archtype = xelib.GetValue(magicEffect,
         'Magic Effect Data\\DATA - Data\\Archtype')
-      let av1 = xelib.GetValue(magicEffect,
+      let av1      = xelib.GetValue(magicEffect,
         'Magic Effect Data\\DATA - Data\\Actor Value')
-      let av2 = xelib.GetValue(magicEffect,
+      let av2      = xelib.GetValue(magicEffect,
         'Magic Effect Data\\DATA - Data\\Second Actor Value')
       if (archtype === 'Value Modifier' || archtype === 'Peak Value Modifier') {
         if (av1 === 'Health') {
@@ -452,10 +477,12 @@
     return false
   }
 
-  PatcherManager.add('spell-damage-detection', 'Damage Spells Bonus Effects').
-    begin(() => initialize()).
-    process(parseSourceSpell, 'SPEL',
-      record => {return xelib.EditorID(record).startsWith(PREFIX + '_BE_')}).
-    process(patchSpell, 'SPEL', filterSpell)
+  PatcherManager.add('spell-damage-detection', 'Damage Spells Bonus Effects')
+                .begin(() => initialize())
+                .process(parseSourceSpell, 'SPEL',
+                  record => {
+                    return xelib.EditorID(record).startsWith(PREFIX + '_BE_')
+                  })
+                .process(patchSpell, 'SPEL', filterSpell)
 
 }

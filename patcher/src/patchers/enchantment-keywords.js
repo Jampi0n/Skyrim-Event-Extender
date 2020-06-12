@@ -8,7 +8,7 @@
    * @param {string} editorID
    */
   function patchEnchEffects (record, editorID) {
-    const enchantment = Utils.winningOverride(
+    const enchantment     = Utils.winningOverride(
       xelib.GetLinksTo(record, 'EITM - Object Effect'))
     const baseEnchantment = Utils.winningOverride(
       xelib.GetLinksTo(enchantment, 'ENIT - Effect Data\\Base Enchantment'))
@@ -35,15 +35,16 @@
       !xelib.HasKeyword(record, xelib.Hex(0x000C27BD))
   }
 
-  PatcherManager.add('enchantment-keywords', 'Enchantment Effect Keywords').
-    master(() => {
-      const formIDs = Allocator.getFormIDs(
-        PatcherManager.getCurrentPatcher().getIdentifier(), 0)
-      Master.addRecord('KYWD', 'EnchantmentApparel', formIDs)
-      Master.addRecord('KYWD', 'EnchantmentWeapon', formIDs)
-    }).
-    process((record) => {patchEnchEffects(record, 'EnchantmentApparel')},
-      'ARMO', canBeDisenchanted).
-    process((record) => {patchEnchEffects(record, 'EnchantmentWeapon')}, 'WEAP',
-      canBeDisenchanted)
+  PatcherManager.add('enchantment-keywords', 'Enchantment Effect Keywords').master(() => {
+    const formIDs = Allocator.getFormIDs(
+      PatcherManager.getCurrentPatcher().getIdentifier(), 0)
+    Master.addRecord('KYWD', 'EnchantmentApparel', formIDs)
+    Master.addRecord('KYWD', 'EnchantmentWeapon', formIDs)
+  }).process((record) => {
+      patchEnchEffects(record, 'EnchantmentApparel')
+    },
+    'ARMO', canBeDisenchanted).process((record) => {
+      patchEnchEffects(record, 'EnchantmentWeapon')
+    }, 'WEAP',
+    canBeDisenchanted)
 }

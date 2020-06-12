@@ -41,7 +41,7 @@ class ScriptUtils {
   static addObjectProperty (script, propertyName, formID) {
     const property = xelib.AddScriptProperty(script, propertyName, 'Object',
       'Edited')
-    const v2Path = 'Value\\Object Union\\Object v2\\'
+    const v2Path   = 'Value\\Object Union\\Object v2\\'
     xelib.SetUIntValue(property, v2Path + 'FormID', formID)
     xelib.SetIntValue(property, v2Path + 'Alias', -1)
     return property

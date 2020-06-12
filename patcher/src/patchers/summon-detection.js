@@ -26,7 +26,7 @@
     if (archType === 'Summon Creature') {
       let summonedActor = xelib.GetLinksTo(record,
         'Magic Effect Data\\DATA - Data\\Assoc. Item')
-      let level = xelib.GetIntValue(summonedActor,
+      let level         = xelib.GetIntValue(summonedActor,
         'ACBS - Configuration\\Level')
 
       const script = ScriptUtils.addScript(record, PREFIX_ + 'SummonCreature')
@@ -40,6 +40,5 @@
   }
 
   PatcherManager.add('summon-detection', 'Summoning Effect Detection',
-    ['spell-damage-detection']).
-    process(patchSummoningEffect, 'MGEF', isSummoningEffect)
+    ['spell-damage-detection']).process(patchSummoningEffect, 'MGEF', isSummoningEffect)
 }
