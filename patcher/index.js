@@ -3,7 +3,7 @@
 const PATCHER_MODE = PatcherModes.RUN_PATCHER
 //= require ./src/include.js
 
-const missingPatchers = Patcher.sort()
+Patcher.sort()
 
 registerPatcher({
   info: info,
@@ -23,16 +23,7 @@ registerPatcher({
         globals.helpers   = helpers
         globals.settings  = settings
         globals.locals    = locals
-
-        for (const patcher of missingPatchers) {
-          Utils.log(
-            'Warning: Patcher ' + patcher[0] + ' must run after patcher ' +
-            patcher[1] + ', which was not found.')
-        }
-
-        for (const patcher of Patcher.patcherOrder) {
-          Utils.log(patcher.name)
-        }
+        
         Utils.log('Initializing...')
         Master.init()
         Patcher.createMaster()

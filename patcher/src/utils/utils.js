@@ -67,6 +67,13 @@ class Utils {
     return file
   }
 
+  /**
+   * Removes element from array. Returns true, if the element was found.
+   * @template T
+   * @param {T[]} array
+   * @param {T} element
+   * @return {boolean}
+   */
   static removeFromArray (array, element) {
     const index = array.indexOf(element)
     if (index >= 0) {
@@ -77,12 +84,24 @@ class Utils {
   }
 
   /**
-   *
+   * Returns a new string without the prefix.
    * @param {string} string
    * @param {string} prefix
    */
   static removePrefix (string, prefix) {
     return string.slice(prefix.length)
+  }
+
+  /**
+   *
+   * @param {boolean} bool
+   * @param {string} msg
+   */
+  static assert (bool, msg) {
+    if (!bool) {
+      Utils.log(msg)
+      throw msg
+    }
   }
 
 }

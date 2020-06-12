@@ -208,36 +208,57 @@ class Patcher {
   }
 
   /**
+   * Uses patcherOrder to create the process block array.
+   * @private
+   */
+  static createProcess () {
+    for (const iPatcher of this._patcherOrder) {
+      for (const iSingleProcess of iPatcher._processBlocks) {
+        this._process.push({
+          load: {
+            signature: iSingleProcess.load.signature,
+            filter: (record) => {
+              if (Patcher._currentPatcher !== iPatcher) {
+                Utils.log('Running: ' + iPatcher.identifier)
+                Patcher._currentPatcher = iPatcher
+              }
+              return iSingleProcess.load.filter(record)
+            },
+          },
+          patch: function (record) {
+            Patcher._currentPatcher = iPatcher
+            iSingleProcess.patch(record)
+            return undefined
+          },
+        })
+      }
+    }
+  }
+
+  /**
    * Sorts all patchers according to their runAfter settings.
-   * @return {string[][]} Returns a list of string pairs. The first element is the patcher for which a runAfter patcher
-   *   was not found. The second element is the identifier of the patcher that was not found.
    */
   static sort () {
 
-    /** @type {number[][]} */ const runAfterIds         = []
-    /** @type {number[]} */ const remainingPatchersIds  = []
-    /** @type {string[][]} */ const missingPatcherNames = []
-    /** @type {number[]} */ const noRunAfterIds         = []
+    /** @type {number[][]} */ const runAfterIds        = []
+    /** @type {number[]} */ const remainingPatchersIds = []
+    /** @type {number[]} */ const noRunAfterIds        = []
 
     // Store list of runAfterIds for every patcher.
     // Add patcherIds with no runAfters to noRunAfterIds.
-    let index = 0
     for (const iPatcher of this._patchers) {
+      const index = this._patchers.indexOf(iPatcher)
       remainingPatchersIds.push(index)
       const runAfterArray = []
       for (const iRunAfter of iPatcher._runAfter) {
         if (this._patcherMap.hasOwnProperty(iRunAfter)) {
-          runAfterArray.push(
-            this._patchers.indexOf(this._patcherMap[iRunAfter]))
-        } else {
-          missingPatcherNames.push([iPatcher.identifier, iRunAfter])
+          runAfterArray.push(this._patchers.indexOf(this._patcherMap[iRunAfter]))
         }
       }
       runAfterIds.push(runAfterArray)
       if (runAfterArray.length === 0) {
         noRunAfterIds.push(index)
       }
-      index++
     }
 
     // Topological sorting of patchers.
@@ -253,47 +274,9 @@ class Patcher {
       }
     }
 
-    for (const iPatcher of this._patcherOrder) {
-      Utils.log(iPatcher._processBlocks + '|' + iPatcher._processBlocks)
-      for (const iSingleProcess of iPatcher._processBlocks) {
-        this._process.push({
-          load: {
-            signature: iSingleProcess.load.signature,
-            /**
-             * @param {number} record
-             * @return {boolean}
-             */
-            filter: (record) => {
-              Patcher._currentPatcher = iPatcher
-              return iSingleProcess.load.filter(record)
-            },
-          },
-          patch: function (record) {
-            Patcher._currentPatcher = iPatcher
-            iSingleProcess.patch(record)
-            return undefined
-          },
-        })
-      }
-    }
-
-    if (remainingPatchersIds.length > 0) {
-      let errorMessage = 'The following patchers could not be sorted: '
-      for (const iPatcherId of remainingPatchersIds) {
-        errorMessage += this._patchers[iPatcherId]._processBlocks + ', '
-      }
-      errorMessage = errorMessage.slice(0, -1)
-      Utils.log(errorMessage)
-      throw errorMessage
-    }
-
-    if (this._patchers.length !== this._patcherOrder.length) {
-      const errorMessage = 'There was an error sorting the patchers.'
-      Utils.log(errorMessage)
-      throw errorMessage
-    }
-
-    return missingPatcherNames
+    this.createProcess()
+    Utils.assert(remainingPatchersIds.length === 0, 'Some patchers could not be sorted.')
+    Utils.assert(this._patchers.length === this._patcherOrder.length, 'There was an error sorting the patchers.')
   }
 
   /**
