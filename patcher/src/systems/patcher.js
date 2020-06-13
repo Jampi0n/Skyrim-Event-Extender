@@ -1,9 +1,4 @@
 /* globals xelib */
-/**
- * A process block consisting of load and patch.
- * @typedef {{load:{signature:string, filter:function(number):boolean },patch:function(number)}} processBlock
- */
-
 class Patcher {
 
   /**
@@ -24,14 +19,14 @@ class Patcher {
 
   /**
    * The unique string identifier of the patcher.
-   * @private
    * @type {string}
+   * @private
    */
   _identifier    = ''
   /**
    * The display name of the patcher.
-   * @private
    * @type {string}
+   * @private
    */
   _displayName   = ''
   /**
@@ -39,23 +34,23 @@ class Patcher {
    * patcher needs the other patchers in order to run. Instead the other patchers modify data, which will change how
    * this patcher performs. For example, patchers that generate new magic effects should run before patchers that edit
    * magic effects.
-   * @private
    * @type {string[]}
+   * @private
    */
   _runAfter      = []
   /**
    * The process block array consisting of load objects and patch functions.
+   * @type {{signature:string,patch:function(number):void}[]}
    * @private
-   * @type {processBlock[]}
    */
   _processBlocks = []
 
   /**
    * Creates a new patcher. Patchers are supposed to be generated
-   * @private
    * @param {string} identifier
    * @param {string} displayName
    * @param {string[]} [runAfter=[]]
+   * @private
    */
   constructor (identifier, displayName, runAfter = []) {
     this._runAfter    = runAfter
@@ -65,17 +60,15 @@ class Patcher {
 
   /**
    * @param {string} signature
-   * @param {function(number):boolean} [filter= (_record) => true] filter
+   * @param {function(number)} patch
    * @return {Patcher} this
    */
-  process (signature, filter = (_record) => true) {
+  process (signature, patch) {
     this._processBlocks.push({
-      load: {
-        signature: signature,
-        filter: filter,
-      },
-      patch: (_) => {return undefined},
+      signature: signature,
+      patch: patch,
     })
+
     return this
   }
 
@@ -85,7 +78,7 @@ class Patcher {
    * @return {Patcher} this
    */
   master (patcherFunction) {
-    this.createMaster = patcherFunction
+    this._createMaster = patcherFunction
     return this
   }
 
@@ -97,7 +90,7 @@ class Patcher {
    * @return {Patcher} this
    */
   begin (patcherFunction) {
-    this.initialize = patcherFunction
+    this._initialize = patcherFunction
     return this
   }
 
@@ -107,45 +100,59 @@ class Patcher {
    * @return {Patcher} this
    */
   end (patcherFunction) {
-    this.finalize = patcherFunction
+    this._finalize = patcherFunction
     return this
   }
 
   /**
-   * @private
    * Runs the createMaster(patcher) function of the patcher.
+   * @private
    */
-  createMaster () {
+  _createMaster () {
   }
 
   /**
-   * @private
    * Runs the initialize(patcher) function of the patcher.
+   * @private
    */
-  initialize () {
+  _initialize () {
   }
 
-  run () {
+  /**
+   * Runs the finalize(patcher) function of the patcher.
+   * @private
+   */
+  _finalize () {
+  }
+
+  /**
+   * Runs the patcher
+   * @private
+   */
+  _run () {
 
     for (const processBlock of this._processBlocks) {
-      const signature   = processBlock.load.signature
-      const filter      = processBlock.load.filter
+      const signature   = processBlock.signature
+      const patch       = processBlock.patch
       const records     = globals.helpers.loadRecords(signature, false)
       const addProgress = 1.0 / records.length
       for (const record of records) {
-        filter(Utils.winningOverride(record))
+        patch(Utils.winningOverride(record))
         Progress.add(addProgress)
       }
     }
   }
 
-  getMaxProgress (filesToPatch) {
+  /**
+   * Returns the progress amount for this patcher.
+   * @param {string[]} filesToPatch
+   * @return {number}
+   * @private
+   */
+  _getMaxProgress (filesToPatch) {
     let progress = 0
     progress += 1
     for (const processBlock of this._processBlocks) {
-      const signature = processBlock.load.signature
-      const records   = xelib.GetRecords(0, signature, false)
-      //const records   = globals.helpers.loadRecords(signature, false)
       progress += 1
     }
     progress += 1
@@ -153,30 +160,7 @@ class Patcher {
   }
 
   /**
-   * @private
-   * Runs the finalize(patcher) function of the patcher.
-   */
-  finalize () {
-  }
-
-  /**
-   * Returns the ordered list of patchers. Only works after Master.sort() was called.
-   * @return {Patcher[]}
-   */
-  static get patcherOrder () {
-    return this._patcherOrder
-  }
-
-  /**
-   * Returns the process block array for use with process property of unified patching framework patchers.
-   * @return {processBlock[]}
-   */
-  static get process () {
-    return this._process
-  }
-
-  /**
-   *
+   * Returns the currently running patcher.
    * @return {Patcher}
    */
   static get currentPatcher () {
@@ -185,36 +169,29 @@ class Patcher {
 
   /**
    *
-   * @private
    * @type {Patcher[]}
+   * @private
    */
-  static _patchers       = []
+  static _patchers     = []
   /**
    *
-   * @private
    * @type {Object.<string,Patcher>}
+   * @private
    */
-  static _patcherMap     = {}
+  static _patcherMap   = {}
   /**
    *
-   * @private
    * @type {Patcher[]}
+   * @private
    */
-  static _patcherOrder   = []
+  static _patcherOrder = []
+
   /**
    *
-   * @private
-   * @type {processBlock[]}
-   */
-  static _process        = []
-  /**
-   *
-   * @private
    * @type {Patcher}
+   * @private
    */
   static _currentPatcher = null
-
-  static _totalProgress = 0
 
   /**
    * Retrieves a formID group for the current Patcher.
@@ -234,40 +211,6 @@ class Patcher {
   static getFormID (group, index) {
     return Allocator.getFormID(this._currentPatcher.identifier, group,
       index)
-  }
-
-  /**
-   * Uses patcherOrder to create the process block array.
-   * @private
-   */
-  static createProcess () {
-    for (const iPatcher of this._patcherOrder) {
-      for (const iSingleProcess of iPatcher._processBlocks) {
-        this._process.push({
-          load: {
-            signature: iSingleProcess.load.signature,
-            filter: (record) => {
-              if (Patcher._currentPatcher !== iPatcher) {
-                if (Patcher._currentPatcher !== null) {
-                  Utils.log(this._currentPatcher.identifier + ' completed in ' +
-                    globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
-                } else {
-                  Utils.log('Initialization completed in ' +
-                    globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
-                }
-                Utils.log('Running: ' + iPatcher.identifier)
-                Patcher._currentPatcher = iPatcher
-                globals.helpers.timerService.start('patchTimer')
-              }
-              return iSingleProcess.load.filter(record)
-            },
-          },
-          patch: function (_) {
-            return undefined
-          },
-        })
-      }
-    }
   }
 
   /**
@@ -309,37 +252,8 @@ class Patcher {
       }
     }
 
-    this.createProcess()
     Utils.assert(remainingPatchersIds.length === 0, 'Some patchers could not be sorted.')
     Utils.assert(this._patchers.length === this._patcherOrder.length, 'There was an error sorting the patchers.')
-  }
-
-  /**
-   * Runs the initialize() function of every patcher.
-   */
-  static initialize () {
-    for (const iPatcher of this._patcherOrder) {
-      Utils.log('Initializing: ' + iPatcher.identifier)
-      Patcher._currentPatcher = iPatcher
-      iPatcher.initialize()
-    }
-    Patcher._currentPatcher = null
-    globals.helpers.timerService.start('patchTimer')
-  }
-
-  /**
-   * Runs the finalize() function of every patcher.
-   */
-  static finalize () {
-    Utils.log(this._currentPatcher.identifier + ' completed in ' +
-      globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
-    for (const iPatcher of this._patcherOrder) {
-      Utils.log('Finalizing: ' + iPatcher.identifier)
-      Patcher._currentPatcher = iPatcher
-      iPatcher.finalize()
-    }
-    Utils.log('Finalization completed in ' +
-      globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
   }
 
   /**
@@ -350,35 +264,43 @@ class Patcher {
       Utils.log(
         'Building master records for patcher ' + iPatcher.identifier)
       Patcher._currentPatcher = iPatcher
-      iPatcher.createMaster()
+      iPatcher._createMaster()
     }
   }
 
+  /**
+   * Runs all patchers.
+   */
   static work () {
     for (const iPatcher of this._patcherOrder) {
       Patcher._currentPatcher = iPatcher
       globals.helpers.timerService.start('patchTimer')
       Utils.log(
         'Running patcher ' + iPatcher.identifier)
-      iPatcher.initialize()
+      iPatcher._initialize()
       Progress.add(1)
-      iPatcher.run()
-      iPatcher.finalize()
+      iPatcher._run()
+      iPatcher._finalize()
       Progress.add(1)
-      Utils.log('Patcher ' + iPatcher.identifier + ' ' +
+      Utils.log('Patcher ' + iPatcher.identifier + ' completed in ' +
         globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
 
     }
   }
 
+  /**
+   * Returns the total progress amount.
+   * @param {string[]} filesToPatch
+   * @return {number}
+   */
   static getTotalProgress (filesToPatch) {
-    this._totalProgress = 0
+    let progress = 0
 
     for (const iPatcher of this._patcherOrder) {
-      this._totalProgress += iPatcher.getMaxProgress(filesToPatch)
+      progress += iPatcher._getMaxProgress(filesToPatch)
     }
-    
-    return this._totalProgress
+
+    return progress
   }
 
   /**
