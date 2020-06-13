@@ -17,5 +17,5 @@
       }
     }
     return false
-  })
+  }, () => {return perkList.length > 0})
 }

@@ -48,12 +48,14 @@
     return -1
   }
 
+  let hasSpells              = false
   let spellListConc          = []
   let spellListFireAndForget = []
   /** @type {Map<number,BonusEffect[]>} */
   let copiedMagicEffects     = null
 
   function initialize () {
+    hasSpells              = false
     copiedMagicEffects     = new Map()
     spellListConc          = []
     spellListFireAndForget = []
@@ -175,11 +177,13 @@
       const formID = xelib.GetHexFormID(record)
       const index  = iResistType.index
       if (concentration) {
+        hasSpells = true
         spellListConc[index].push(record)
         Utils.log(
           `Adding spell ${formID} to spell list of type ${ResistType.AllTypes[index].name} for concentration spells.`)
       }
       if (fireAndForget) {
+        hasSpells = true
         spellListFireAndForget[index].push(record)
         Utils.log(
           `Adding spell ${formID} to spell list of type ${ResistType.AllTypes[index].name} for fire and forget spells.`)
@@ -435,5 +439,5 @@
   Patcher.add('spell-damage-detection', 'Damage Spells Bonus Effects')
          .begin(() => initialize())
          .process('SPEL', parseSourceSpell)
-         .process('SPEL', patchSpell)
+         .process('SPEL', patchSpell, () => {return hasSpells})
 }

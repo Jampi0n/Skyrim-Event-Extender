@@ -40,7 +40,7 @@ class Patcher {
   _runAfter      = []
   /**
    * The process block array consisting of load objects and patch functions.
-   * @type {{signature:string,patch:function(number):void}[]}
+   * @type {{signature:string,patch:function(number):void,condition:function():boolean}[]}
    * @private
    */
   _processBlocks = []
@@ -61,12 +61,14 @@ class Patcher {
   /**
    * @param {string} signature
    * @param {function(number)} patch
+   * @param {function():boolean} [condition=()=>{return true}]
    * @return {Patcher} this
    */
-  process (signature, patch) {
+  process (signature, patch, condition = () => {return true}) {
     this._processBlocks.push({
       signature: signature,
       patch: patch,
+      condition: condition,
     })
 
     return this
@@ -130,15 +132,19 @@ class Patcher {
    * @private
    */
   _run () {
-
     for (const processBlock of this._processBlocks) {
-      const signature   = processBlock.signature
-      const patch       = processBlock.patch
-      const records     = globals.helpers.loadRecords(signature, false)
-      const addProgress = 1.0 / records.length
-      for (const record of records) {
-        patch(Utils.winningOverride(record))
-        Progress.add(addProgress)
+      const evaluate = processBlock.condition()
+      if (evaluate) {
+        const signature   = processBlock.signature
+        const patch       = processBlock.patch
+        const records     = globals.helpers.loadRecords(signature, false)
+        const addProgress = 1.0 / records.length
+        for (const record of records) {
+          patch(Utils.winningOverride(record))
+          Progress.add(addProgress)
+        }
+      } else {
+        Progress.add(1)
       }
     }
   }
