@@ -48,7 +48,7 @@ gulp.task('release', function () {
   console.log(`Packaging ${zipFileName}`)
 
   return gulp.src('dist/**/*', { base: 'dist/' })
-             .pipe(rename((path) => path.dirname = `${moduleId}/${path.dirname}`))
+             .pipe(rename(path => path.dirname = `${moduleId}/${path.dirname}`))
              .pipe(zip(zipFileName))
              .pipe(gulp.dest('.'))
 })

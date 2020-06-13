@@ -13,7 +13,7 @@
    * @return {function(number):boolean}
    */
   function patchEnchEffects (editorID) {
-    return (record) => {
+    return record => {
       if (!canBeDisenchanted(record)) {
         return false
       }

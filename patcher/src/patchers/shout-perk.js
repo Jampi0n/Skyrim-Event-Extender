@@ -82,7 +82,7 @@
   }
 
   Patcher.add('shout-perk', 'Shout Spell Detection').master(() => {
-    Master.addRecord('PERK', 'SpellIsShout', Patcher.getFormIDs(0)).init(function (record) {
+    Master.addRecord('PERK', 'SpellIsShout', Patcher.getFormIDs(0)).init(record => {
       xelib.AddElement(record, 'FULL - Name')
       xelib.SetValue(record, 'FULL - Name', 'Spell Is Shout')
     })

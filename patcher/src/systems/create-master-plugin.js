@@ -85,7 +85,7 @@ class Master {
     xelib.SetFileAuthor(this.file, AUTHOR_NAME)
     xelib.SetIsESM(this.file, true)
     let mainFormIDs = Allocator.getFormIDs('create-master-plugin', 0)
-    this.addRecord('QUST', 'Main', mainFormIDs).init(function (record) {
+    this.addRecord('QUST', 'Main', mainFormIDs).init(record => {
       xelib.SetValue(xelib.AddElement(record, 'FULL - Name'), '', 'Main')
 
       const flags = xelib.AddElement(record, 'DNAM - General\\Flags')

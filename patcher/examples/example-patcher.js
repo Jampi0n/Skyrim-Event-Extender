@@ -39,7 +39,7 @@ Allocator.alloc('Example Patcher', 3)
     // Finally, you can access the formID by its EditorID:
     Utils.log(xelib.Hex(Master.fromEditorID('Keyword3')))
     patcherName = Patcher.currentPatcher.displayName
-  }).process('MGEF', (record) => {
+  }).process('MGEF', record => {
     if (xelib.EditorID(record).startsWith('Alch')) {
       Utils.log('FullName' + xelib.FullName(record))
       xelib.SetValue(record, 'EDID - Editor ID',

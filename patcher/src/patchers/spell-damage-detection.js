@@ -376,7 +376,7 @@
    */
   function patchSpell (record) {
     let copied                 = false
-    const numberOfMagicEffects = doForAllEffects(record, (_) => {
+    const numberOfMagicEffects = doForAllEffects(record, _ => {
     })
     for (let i = 0; i < numberOfMagicEffects; ++i) {
       let patchEffect   = false

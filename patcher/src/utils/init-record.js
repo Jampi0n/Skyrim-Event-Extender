@@ -1,6 +1,6 @@
 /* globals xelib */
 const initRecord = {
-  'KYWD': function (record) {
+  'KYWD': record => {
     xelib.AddElement(record, 'CNAM - Color')
   },
 }
