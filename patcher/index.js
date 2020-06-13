@@ -38,6 +38,12 @@ registerPatcher({
       process: [],
     }
   },
-  removeWarnings: [this.execute().initialize(), this.execute().customProgress()],
+  removeWarnings: [
+    () => {
+      this.execute().initialize()
+      this.execute().customProgress()
+    },
+  ]
+  ,
 })
 

@@ -281,7 +281,7 @@ class Patcher {
   static getTotalProgress () {
     let progress = 0
     for (const iPatcher of this._patcherOrder) {
-      progress += iPatcher._processBlocks.length
+      progress += iPatcher._processBlocks.length + 2
     }
     return progress
   }
