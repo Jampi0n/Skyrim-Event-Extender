@@ -18,6 +18,10 @@ registerPatcher({
   requiredFiles: [MASTER_NAME],
   execute (patchFile, helpers, settings, locals) {
     return {
+      customProgress: function (filesToPatch) {
+        const max = Patcher.getTotalProgress(filesToPatch)
+        return Progress.setMax(max)
+      },
       initialize: function () {
         globals.patchFile = patchFile
         globals.helpers   = helpers
@@ -29,6 +33,7 @@ registerPatcher({
         Patcher.createMaster()
         Utils.log('Running...')
         Patcher.work()
+        Progress.complete()
       },
       process: [],
     }

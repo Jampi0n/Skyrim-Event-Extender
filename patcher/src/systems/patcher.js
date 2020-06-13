@@ -1,3 +1,4 @@
+/* globals xelib */
 /**
  * A process block consisting of load and patch.
  * @typedef {{load:{signature:string, filter:function(number):boolean },patch:function(number)}} processBlock
@@ -125,14 +126,30 @@ class Patcher {
   }
 
   run () {
+
     for (const processBlock of this._processBlocks) {
-      const signature = processBlock.load.signature
-      const filter    = processBlock.load.filter
-      const records   = globals.helpers.loadRecords(signature, false)
+      const signature   = processBlock.load.signature
+      const filter      = processBlock.load.filter
+      const records     = globals.helpers.loadRecords(signature, false)
+      const addProgress = 1.0 / records.length
       for (const record of records) {
         filter(Utils.winningOverride(record))
+        Progress.add(addProgress)
       }
     }
+  }
+
+  getMaxProgress (filesToPatch) {
+    let progress = 0
+    progress += 1
+    for (const processBlock of this._processBlocks) {
+      const signature = processBlock.load.signature
+      const records   = xelib.GetRecords(0, signature, false)
+      //const records   = globals.helpers.loadRecords(signature, false)
+      progress += 1
+    }
+    progress += 1
+    return progress
   }
 
   /**
@@ -196,6 +213,8 @@ class Patcher {
    * @type {Patcher}
    */
   static _currentPatcher = null
+
+  static _totalProgress = 0
 
   /**
    * Retrieves a formID group for the current Patcher.
@@ -338,10 +357,28 @@ class Patcher {
   static work () {
     for (const iPatcher of this._patcherOrder) {
       Patcher._currentPatcher = iPatcher
+      globals.helpers.timerService.start('patchTimer')
+      Utils.log(
+        'Running patcher ' + iPatcher.identifier)
       iPatcher.initialize()
+      Progress.add(1)
       iPatcher.run()
       iPatcher.finalize()
+      Progress.add(1)
+      Utils.log('Patcher ' + iPatcher.identifier + ' ' +
+        globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
+
     }
+  }
+
+  static getTotalProgress (filesToPatch) {
+    this._totalProgress = 0
+
+    for (const iPatcher of this._patcherOrder) {
+      this._totalProgress += iPatcher.getMaxProgress(filesToPatch)
+    }
+    
+    return this._totalProgress
   }
 
   /**
