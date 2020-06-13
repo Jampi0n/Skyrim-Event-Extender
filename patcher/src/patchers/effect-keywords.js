@@ -134,7 +134,7 @@
   Patcher.add('effect-keywords', 'Magic Effect Keywords',
     ['summon-detection', 'spell-damage-detection']).master(() => {
     const formIDs = Patcher.getFormIDs(0)
-    Master.addRecord('KYWD', 'EffectRestoreAttribute', formIDs)
+    Master.addRecord('KYWD', 'EffectRestoreAny', formIDs)
     Master.addRecord('KYWD', 'EffectRestoreHealth', formIDs)
     Master.addRecord('KYWD', 'EffectRestoreMagicka', formIDs)
     Master.addRecord('KYWD', 'EffectRestoreStamina', formIDs)
