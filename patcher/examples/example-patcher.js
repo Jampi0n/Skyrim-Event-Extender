@@ -39,29 +39,27 @@ Allocator.alloc('Example Patcher', 3)
     // Finally, you can access the formID by its EditorID:
     Utils.log(xelib.Hex(Master.fromEditorID('Keyword3')))
     patcherName = Patcher.currentPatcher.displayName
-  }).process((record) => {
-    Utils.log('FullName' + xelib.FullName(record))
-    xelib.SetValue(record, 'EDID - Editor ID',
-      'ExamplePatcher_' + xelib.EditorID(record))
-    Utils.log(Patcher.getFormID(0, 0))
-    Utils.log(formIDOfKeyword2)
-    Utils.log(Master.fromEditorID('Keyword3'))
+  }).process('MGEF', (record) => {
+    if (xelib.EditorID(record).startsWith('Alch')) {
+      Utils.log('FullName' + xelib.FullName(record))
+      xelib.SetValue(record, 'EDID - Editor ID',
+        'ExamplePatcher_' + xelib.EditorID(record))
+      Utils.log(Patcher.getFormID(0, 0))
+      Utils.log(formIDOfKeyword2)
+      Utils.log(Master.fromEditorID('Keyword3'))
 
-    const keywords = [
-      Patcher.getFormID(0, 0),
-      formIDOfKeyword2,
-      Master.fromEditorID('Keyword3'),
-    ]
-    for (let keyword of keywords) {
-      keyword = xelib.Hex(keyword)
-      if (!xelib.HasKeyword(record, keyword)) {
-        xelib.AddKeyword(record, keyword)
+      const keywords = [
+        Patcher.getFormID(0, 0),
+        formIDOfKeyword2,
+        Master.fromEditorID('Keyword3'),
+      ]
+      for (let keyword of keywords) {
+        keyword = xelib.Hex(keyword)
+        if (!xelib.HasKeyword(record, keyword)) {
+          xelib.AddKeyword(record, keyword)
+        }
       }
     }
-  }, 'MGEF', (record) => {
-    if (xelib.HasElement(record, 'EDID - Editor ID')) {
-      return xelib.EditorID(record).startsWith('Alch')
-    } else {return false}
   }).end(() => {
     Utils.log('[' + patcherName + ']: finalize() is running.')
   })
