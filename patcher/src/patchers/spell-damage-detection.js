@@ -18,6 +18,9 @@
   }
 
   class BonusEffect {
+    magicEffectFormID
+    magnitudeFactor
+
     constructor (magicEffectFormID, magnitudeFactor) {
       this.magicEffectFormID = magicEffectFormID
       this.magnitudeFactor   = magnitudeFactor
@@ -47,10 +50,13 @@
 
   let spellListConc          = []
   let spellListFireAndForget = []
+  /** @type {Map<number,BonusEffect[]>} */
   let copiedMagicEffects     = null
 
   function initialize () {
-    copiedMagicEffects = new Map([[0, 0]])
+    copiedMagicEffects     = new Map()
+    spellListConc          = []
+    spellListFireAndForget = []
     for (const iResistType of ResistType.AllTypes) {
       spellListConc.push([])
       spellListFireAndForget.push([])

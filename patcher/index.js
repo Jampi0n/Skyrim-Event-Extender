@@ -23,17 +23,14 @@ registerPatcher({
         globals.helpers   = helpers
         globals.settings  = settings
         globals.locals    = locals
-        
+
         Utils.log('Initializing...')
         Master.init()
         Patcher.createMaster()
-        Patcher.initialize()
-        Utils.log('Initialization completed.')
+        Utils.log('Running...')
+        Patcher.work()
       },
-      process: Patcher.process,
-      finalize: function () {
-        Patcher.finalize()
-      },
+      process: [],
     }
   },
 })

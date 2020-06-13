@@ -124,6 +124,17 @@ class Patcher {
   initialize () {
   }
 
+  run () {
+    for (const processBlock of this._processBlocks) {
+      const signature = processBlock.load.signature
+      const filter    = processBlock.load.filter
+      const records   = globals.helpers.loadRecords(signature, false)
+      for (const record of records) {
+        filter(Utils.winningOverride(record))
+      }
+    }
+  }
+
   /**
    * @private
    * Runs the finalize(patcher) function of the patcher.
@@ -321,6 +332,15 @@ class Patcher {
         'Building master records for patcher ' + iPatcher.identifier)
       Patcher._currentPatcher = iPatcher
       iPatcher.createMaster()
+    }
+  }
+
+  static work () {
+    for (const iPatcher of this._patcherOrder) {
+      Patcher._currentPatcher = iPatcher
+      iPatcher.initialize()
+      iPatcher.run()
+      iPatcher.finalize()
     }
   }
 
