@@ -1,26 +1,48 @@
 /* global xelib */
 
 {
+  /** @type {Map.<number,boolean>} */
+  let patchedBaseEnchantments
+  /** @type {Map.<number,boolean>} */
+  let patchedMagicEffects
+
   /**
    * Adds the keyword belonging to editorID to all enchantment magic effects of
    * the item record.
-   * @param {number} record
    * @param {string} editorID
+   * @return {function(number):boolean}
    */
-  function patchEnchEffects (record, editorID) {
-    const enchantment     = Utils.winningOverride(
-      xelib.GetLinksTo(record, 'EITM - Object Effect'))
-    const baseEnchantment = Utils.winningOverride(
-      xelib.GetLinksTo(enchantment, 'ENIT - Effect Data\\Base Enchantment'))
-    for (let i = 0; true; ++i) {
-      const magicEffect = Utils.winningOverride(
-        xelib.GetLinksTo(baseEnchantment,
-          'Effects\\[' + i + ']\\EFID - Base Effect'))
-      if (magicEffect === 0) {
-        break
+  function patchEnchEffects (editorID) {
+    return (record) => {
+      if (!canBeDisenchanted(record)) {
+        return false
       }
-      Utils.addKeyword(globals.helpers.copyToPatch(magicEffect),
-        Master.fromEditorID(editorID))
+      const enchantment     = Utils.winningOverride(
+        xelib.GetLinksTo(record, 'EITM - Object Effect'))
+      const baseEnchantment = Utils.winningOverride(
+        xelib.GetLinksTo(enchantment, 'ENIT - Effect Data\\Base Enchantment'))
+      if (baseEnchantment === 0) {
+        return false
+      }
+      const baseEnchantmentFormID = xelib.GetFormID(baseEnchantment)
+      if (!patchedBaseEnchantments.has(baseEnchantmentFormID)) {
+        patchedBaseEnchantments.set(baseEnchantmentFormID, true)
+        for (let i = 0; true; ++i) {
+          const magicEffect = Utils.winningOverride(
+            xelib.GetLinksTo(baseEnchantment,
+              'Effects\\[' + i + ']\\EFID - Base Effect'))
+          if (magicEffect === 0) {
+            break
+          }
+          const magicEffectFormID = xelib.GetFormID(magicEffect)
+          if (!patchedMagicEffects.has(magicEffectFormID)) {
+            patchedMagicEffects.set(magicEffectFormID, true)
+            Utils.addKeyword(globals.helpers.copyToPatch(magicEffect),
+              Master.fromEditorID(editorID))
+          }
+        }
+      }
+      return false
     }
   }
 
@@ -32,18 +54,19 @@
    */
   function canBeDisenchanted (record) {
     return xelib.GetLinksTo(record, 'EITM - Object Effect') !== 0 &&
-      !xelib.HasKeyword(record, xelib.Hex(0x000C27BD))
+      !Utils.hasKeyword(record, 0x000C27BD)
   }
 
-  Patcher.add('enchantment-keywords', 'Enchantment Effect Keywords').master(() => {
-    const formIDs = Patcher.getFormIDs(0)
-    Master.addRecord('KYWD', 'EnchantmentApparel', formIDs)
-    Master.addRecord('KYWD', 'EnchantmentWeapon', formIDs)
-  }).process((record) => {
-      patchEnchEffects(record, 'EnchantmentApparel')
-    },
-    'ARMO', canBeDisenchanted).process((record) => {
-      patchEnchEffects(record, 'EnchantmentWeapon')
-    }, 'WEAP',
-    canBeDisenchanted)
+  Patcher.add('enchantment-keywords', 'Enchantment Effect Keywords')
+         .master(() => {
+           const formIDs = Patcher.getFormIDs(0)
+           Master.addRecord('KYWD', 'EnchantmentApparel', formIDs)
+           Master.addRecord('KYWD', 'EnchantmentWeapon', formIDs)
+         })
+         .begin(_ => {
+           patchedBaseEnchantments = new Map()
+           patchedMagicEffects     = new Map()
+         })
+         .process('ARMO', patchEnchEffects('EnchantmentApparel'))
+         .process('WEAP', patchEnchEffects('EnchantmentWeapon'))
 }

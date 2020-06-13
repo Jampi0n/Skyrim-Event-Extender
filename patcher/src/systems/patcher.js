@@ -63,18 +63,17 @@ class Patcher {
   }
 
   /**
-   * @param {function(number):void} patch
    * @param {string} signature
    * @param {function(number):boolean} [filter= (_record) => true] filter
    * @return {Patcher} this
    */
-  process (patch, signature, filter = (_record) => true) {
+  process (signature, filter = (_record) => true) {
     this._processBlocks.push({
       load: {
         signature: signature,
         filter: filter,
       },
-      patch: patch,
+      patch: (_) => {return undefined},
     })
     return this
   }
@@ -219,15 +218,21 @@ class Patcher {
             signature: iSingleProcess.load.signature,
             filter: (record) => {
               if (Patcher._currentPatcher !== iPatcher) {
+                if (Patcher._currentPatcher !== null) {
+                  Utils.log(this._currentPatcher.identifier + ' completed in ' +
+                    globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
+                } else {
+                  Utils.log('Initialization completed in ' +
+                    globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
+                }
                 Utils.log('Running: ' + iPatcher.identifier)
                 Patcher._currentPatcher = iPatcher
+                globals.helpers.timerService.start('patchTimer')
               }
               return iSingleProcess.load.filter(record)
             },
           },
-          patch: function (record) {
-            Patcher._currentPatcher = iPatcher
-            iSingleProcess.patch(record)
+          patch: function (_) {
             return undefined
           },
         })
@@ -288,17 +293,23 @@ class Patcher {
       Patcher._currentPatcher = iPatcher
       iPatcher.initialize()
     }
+    Patcher._currentPatcher = null
+    globals.helpers.timerService.start('patchTimer')
   }
 
   /**
    * Runs the finalize() function of every patcher.
    */
   static finalize () {
+    Utils.log(this._currentPatcher.identifier + ' completed in ' +
+      globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
     for (const iPatcher of this._patcherOrder) {
       Utils.log('Finalizing: ' + iPatcher.identifier)
       Patcher._currentPatcher = iPatcher
       iPatcher.finalize()
     }
+    Utils.log('Finalization completed in ' +
+      globals.helpers.timerService.getSecondsStr('patchTimer') + '.')
   }
 
   /**

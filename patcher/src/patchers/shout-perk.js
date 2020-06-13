@@ -56,8 +56,12 @@
   /**
    *
    * @param {number} record
+   * @return {boolean}
    */
   function patchShout (record) {
+    if (!isShout(record)) {
+      return false
+    }
     for (let i = 0; i < 3; ++i) {
       let spell       = xelib.GetLinksTo(record, getWordPath(i) + 'Spell')
       spell           = xelib.GetWinningOverride(spell)
@@ -68,12 +72,13 @@
           Utils.log(`Shout spell ${xelib.GetHexFormID(
             spell)} already has a perk: ${xelib.Hex(currentPerkFormID)}`)
         }
-        return
+        return false
       }
       let copy = globals.helpers.copyToPatch(spell, false)
       xelib.SetUIntValue(copy, 'SPIT - Data\\Half-cost Perk',
         Master.fromEditorID('SpellIsShout'))
     }
+    return false
   }
 
   Patcher.add('shout-perk', 'Shout Spell Detection').master(() => {
@@ -81,5 +86,5 @@
       xelib.AddElement(record, 'FULL - Name')
       xelib.SetValue(record, 'FULL - Name', 'Spell Is Shout')
     })
-  }).process(patchShout, 'SHOU', isShout)
+  }).process('SHOU', patchShout)
 }

@@ -4,14 +4,18 @@
   let perkList = []
   Patcher.add('actor-perks', 'Actor Perk Distributor').begin(() => {
     perkList = []
-  }).process(record => {
+  }).process('PERK', record => {
+    if (xelib.EditorID(record).startsWith(PREFIX + '_AP_')) {
       perkList.push(xelib.GetHexFormID(record))
-    }, 'PERK',
-    (record) => {
-      return xelib.EditorID(record).startsWith(PREFIX + '_AP_')
-    }).process(record => {
-    for (const perk of perkList) {
-      xelib.AddPerk(record, perk, '1')
     }
-  }, 'NPC_', (_) => {return perkList.length > 0})
+    return false
+  }).process('NPC_', record => {
+    if (perkList.length > 0) {
+      record = globals.helpers.copyToPatch(record, false)
+      for (const perk of perkList) {
+        xelib.AddPerk(record, perk, '1')
+      }
+    }
+    return false
+  })
 }

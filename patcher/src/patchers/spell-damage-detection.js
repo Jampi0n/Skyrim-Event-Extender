@@ -147,22 +147,20 @@
   /**
    * Parses a spell record and adds it to the corresponding spell lists.
    * @param {number} record
+   * @return {boolean}
    */
   function parseSourceSpell (record) {
     let editorID = xelib.EditorID(record)
-    Utils.log('1:' + editorID)
+    if (editorID === '') {
+      return false
+    }
     editorID = parsePrefix(editorID)
-    Utils.log('2:' + editorID)
 
     let result     = parseCastType(editorID)
     const castType = result.castType
-    Utils.log('3:' + result.string)
-    Utils.log('3:' + result.castType)
 
     result            = parseResistTypes(result.string)
     const resistTypes = result.resistTypes
-    Utils.log('4:' + result.string)
-    Utils.log('4:' + JSON.stringify(result.resistTypes))
 
     const fireAndForget = castType === CastTypes.ANY || castType === CastTypes.FIRE_AND_FORGET
     const concentration = castType === CastTypes.ANY || castType === CastTypes.CONCENTRATION
@@ -181,6 +179,7 @@
           `Adding spell ${formID} to spell list of type ${ResistType.AllTypes[index].name} for fire and forget spells.`)
       }
     }
+    return false
   }
 
   /**
@@ -363,8 +362,10 @@
   /**
    * Adds bonus effects for each damaging magic effect of the spell.
    * @param record
+   * @return {boolean}
    */
   function patchSpell (record) {
+    let copied                 = false
     const numberOfMagicEffects = doForAllEffects(record, (_) => {
     })
     for (let i = 0; i < numberOfMagicEffects; ++i) {
@@ -414,64 +415,12 @@
 
       // All checks passed, patch the spell + magic effect
       if (patchEffect) {
+        if (!copied) {
+          copied = true
+          record = globals.helpers.copyToPatch(record, false)
+        }
         patchSpellEffect(record, magicEffect, resistType, i,
           secondActorValue)
-      }
-    }
-  }
-
-  function filterSpell (record) {
-    // Ignore source spells
-    if (xelib.EditorID(record).startsWith('JEE_BE_')) {
-      return false
-    }
-
-    // Only concentration and fire & forget are allowed
-    let castTypeId = xelib.GetIntValue(record, 'SPIT - Data\\Cast Type')
-    if (castTypeId !== 1 && castTypeId !== 2) {
-      return false
-    }
-
-    // Check if the spell has damaging effects
-    for (let j = 0; true; j++) {
-      // Magic effect in the spell list
-      let magicEffect = xelib.GetElement(record, 'Effects\\[' + j + ']')
-      if (magicEffect === 0) {
-        break
-      }
-      // Base magic effect record
-      magicEffect = xelib.GetLinksTo(record,
-        'Effects\\[' + j + ']\\EFID - Base Effect')
-      if (magicEffect === 0) {
-        let formID = xelib.GetHexFormID(record)
-        Utils.log(`baseEffect==0: ${formID}`)
-        continue
-      }
-      // Base magic effect record - winning override
-      magicEffect = xelib.GetWinningOverride(magicEffect)
-
-      // Check if the magic effect is damaging
-      if (!Utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
-        continue
-      }
-      if (Utils.magicEffectHasFlag(magicEffect, 'Recover')) {
-        continue
-      }
-      let archtype = xelib.GetValue(magicEffect,
-        'Magic Effect Data\\DATA - Data\\Archtype')
-      let av1      = xelib.GetValue(magicEffect,
-        'Magic Effect Data\\DATA - Data\\Actor Value')
-      let av2      = xelib.GetValue(magicEffect,
-        'Magic Effect Data\\DATA - Data\\Second Actor Value')
-      if (archtype === 'Value Modifier' || archtype === 'Peak Value Modifier') {
-        if (av1 === 'Health') {
-          return true
-        }
-      }
-      if (archtype === 'Dual Value Modifier') {
-        if (av1 === 'Health' || av2 === 'Health') {
-          return true
-        }
       }
     }
     return false
@@ -479,10 +428,6 @@
 
   Patcher.add('spell-damage-detection', 'Damage Spells Bonus Effects')
          .begin(() => initialize())
-         .process(parseSourceSpell, 'SPEL',
-           record => {
-             return xelib.EditorID(record).startsWith(PREFIX + '_BE_')
-           })
-         .process(patchSpell, 'SPEL', filterSpell)
-
+         .process('SPEL', parseSourceSpell)
+         .process('SPEL', patchSpell)
 }

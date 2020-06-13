@@ -15,8 +15,13 @@
   /**
    *
    * @param {number} record
+   * @return {boolean}
    */
   function patchSummoningEffect (record) {
+    if (!isSummoningEffect(record)) {
+      return false
+    }
+    record = globals.helpers.copyToPatch(record, false)
     xelib.AddElement(record, 'VMAD - Virtual Machine Adapter')
     xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Version', '5')
     xelib.SetValue(record, 'VMAD - Virtual Machine Adapter\\Object Format', '2')
@@ -37,8 +42,9 @@
       const script = ScriptUtils.addScript(record, PREFIX_ + 'Reanimate')
       ScriptUtils.addPlayerProperty(script)
     }
+    return false
   }
 
   Patcher.add('summon-detection', 'Summoning Effect Detection',
-    ['spell-damage-detection']).process(patchSummoningEffect, 'MGEF', isSummoningEffect)
+    ['spell-damage-detection']).process('MGEF', patchSummoningEffect)
 }

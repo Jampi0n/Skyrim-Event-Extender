@@ -141,12 +141,18 @@
     for (const iResistName of resistNames) {
       Master.addRecord('KYWD', 'DamageType' + iResistName, formIDs)
     }
-  }).process(record => {
+  }).process('MGEF', record => {
+    let copied = false
     for (const iKeywordRule of keywordRules) {
       const addKeywords = iKeywordRule(record)
       for (const iFormID of addKeywords) {
+        if (!copied) {
+          copied = true
+          record = globals.helpers.copyToPatch(record, false)
+        }
         Utils.addKeyword(record, iFormID)
       }
     }
-  }, 'MGEF')
+    return false
+  })
 }
