@@ -382,6 +382,10 @@
       let patchEffect   = false
       const magicEffect = getEffect(record, i)
       const effectPath  = 'Effects\\[' + i + ']\\EFIT - \\'
+      // NoBonusEffect keyword
+      if (Utils.hasKeyword(magicEffect, Patcher.getFormID(0, 0))) {
+        continue
+      }
       if (!Utils.magicEffectHasFlag(magicEffect, 'Detrimental')) {
         continue
       }
@@ -436,7 +440,12 @@
     return false
   }
 
-  Patcher.add('spell-damage-detection', 'Damage Spells Bonus Effects')
+  Patcher.add('spell-damage-detection', 'Damage Spells Bonus Effects').master(() => {
+    const formIDs = Patcher.getFormIDs(0)
+    // This keyword can be used to prevent infinite loops. For example if a bonus effect triggers a new spell, the
+    // triggered spell should not trigger itself again.
+    Master.addRecord('KYWD', 'NoBonusEffects', formIDs)
+  })
          .begin(() => initialize())
          .process('SPEL', parseSourceSpell)
          .process('SPEL', patchSpell, () => {return hasSpells})
