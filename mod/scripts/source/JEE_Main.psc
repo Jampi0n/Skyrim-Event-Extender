@@ -3,10 +3,10 @@ Scriptname JEE_Main extends Quest
 
 }
 
-String Property PatchName = "JModEvents_Patch.esp" Auto
+String Property PatchName Auto
 
 Function DisplayError(String msg)
-	Debug.MessageBox("[JModEvents]\n" + msg)
+	Debug.MessageBox("[Skyrim Event Extender]\n" + msg)
 EndFunction
 
 Function CheckRequirements()
@@ -34,9 +34,11 @@ Function CheckRequirements()
 EndFunction
 
 Function OnLoadGame()
+	Utility.Wait(0.01)
 	CheckRequirements()
 EndFunction
 
 Event OnInit()
+	Utility.Wait(0.01)
 	CheckRequirements()
 EndEvent
