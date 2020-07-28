@@ -95,14 +95,14 @@ class Master {
       const alias = xelib.AddArrayItem(record, 'Aliases',
         'ALST - Reference Alias ID', '0')
       xelib.SetValue(xelib.AddElement(alias, 'ALID - Alias Name'), '',
-        PREFIX + '_Main_PlayerAlias')
+        PREFIX_ + 'Main_PlayerAlias')
       xelib.AddElement(alias, 'FNAM - Alias Flags')
       xelib.SetUIntValue(xelib.AddElement(alias, 'ALFR - Forced Reference'),
         '', 0x14)
       xelib.SetUIntValue(xelib.AddElement(alias, 'VTCK - Voice Type'), '',
         0x0)
 
-      const mainScript = ScriptUtils.addScript(record, PREFIX + 'Main')
+      const mainScript = ScriptUtils.addScript(record, PREFIX_ + 'Main')
       ScriptUtils.addStringProperty(mainScript, 'PatchName', PATCH_NAME)
 
       const vmad = xelib.GetElement(record, 'VMAD - Virtual Machine Adapter')
@@ -113,9 +113,9 @@ class Master {
       xelib.SetUIntValue(vmadAliases, 'Object Union\\Object v2\\FormID',
         xelib.GetFormID(record))
       xelib.SetValue(vmadAliases, 'Object Union\\Object v2\\Alias',
-        '000 ' + PREFIX + 'Main_PlayerAlias')
+        '000 ' + PREFIX_ + 'Main_PlayerAlias')
       const aliasScripts = xelib.AddArrayItem(vmadAliases, 'Alias Scripts',
-        'scriptName', PREFIX + 'Main_OnLoadGame')
+        'scriptName', PREFIX_ + 'Main_OnLoadGame')
       xelib.SetValue(aliasScripts, 'Flags', 'Local')
       const aliasProperties = xelib.AddArrayItem(aliasScripts, 'Properties',
         'propertyName', 'main')
